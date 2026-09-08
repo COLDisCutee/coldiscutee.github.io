@@ -1,2063 +1,668 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-<title>Lexigraph · 낱말의 별자리</title>
-<meta name="description" content="유의어와 반의어를 그래프로 탐색하고 단어장으로 암기하는 Lexigraph" />
-<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light only">
+<title>Coinzero — 저작 판별 엔진</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+KR:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-  html, body { margin: 0; padding: 0; height: 100%; background: #F6F2E9; overscroll-behavior: none; }
-  #root { position: fixed; inset: 0; }
-  #boot-error { display: none; position: fixed; inset: 0; z-index: 9999; padding: 28px 24px; box-sizing: border-box; overflow: auto; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #77323A; background: #F6F2E9; }
-  #boot-error h1 { font-size: 18px; margin: 0 0 12px; }
-  #boot-error p { font-size: 14px; color: #2C2C2C; line-height: 1.6; margin: 0 0 10px; }
-  #boot-error pre { font-size: 12px; background: rgba(119,50,58,.08); padding: 12px; border-radius: 8px; white-space: pre-wrap; word-break: break-word; }
+:root{
+  color-scheme:light only;
+  --ink:#0C1117;--ink2:#4B5A6B;--ink3:#94A0AD;
+  --line:#EBEEF1;--line2:#D9DEE4;--steel:#1E3C63;
+  --flag:#A3382E;--clear:#15644A;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:#FFF !important;color:var(--ink)}
+@media (prefers-color-scheme:dark){html,body{background:#FFF !important;color:var(--ink)}}
+body{font-family:"IBM Plex Sans KR","Apple SD Gothic Neo",system-ui,sans-serif;
+  font-weight:400;font-size:16px;line-height:1.65;-webkit-font-smoothing:antialiased}
+body.locked{overflow:hidden}
+.wrap{max-width:760px;margin:0 auto;padding:0 28px}
+.mono{font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+:focus-visible{outline:2px solid var(--steel);outline-offset:3px}
+
+header{border-bottom:1px solid var(--line)}
+.bar{max-width:760px;margin:0 auto;padding:0 28px;display:flex;align-items:center;justify-content:space-between;height:66px}
+.brand{display:flex;align-items:center;gap:11px;font-weight:600;font-size:18px;letter-spacing:-.03em}
+.brand .disc{width:18px;height:18px;border-radius:50%;
+  background:conic-gradient(from 200deg,#9C7A26,#F0DA9B 20%,#C7A03B 42%,#8A6A1C 64%,#EBD48D 84%,#9C7A26);
+  box-shadow:inset 0 0 0 1.5px rgba(90,68,16,.45)}
+.quota{font-size:12px;color:var(--ink3)}
+
+.hero{padding:64px 0 0;text-align:center;transition:opacity .55s ease,transform .55s ease}
+.hero.dim{opacity:0;transform:translateY(-8px);pointer-events:none}
+h1{margin:0 auto 16px;font-weight:600;font-size:clamp(27px,4.2vw,40px);line-height:1.2;letter-spacing:-.035em;max-width:17ch}
+.hero p{margin:0 auto;color:var(--ink2);font-size:16px;font-weight:300;max-width:38ch}
+
+.stage{position:relative;height:520px;margin:-12px 0 4px}
+.stage canvas{display:block;width:100%;height:100%}
+.fallback{position:absolute;inset:0;display:none;align-items:center;justify-content:center;color:var(--ink3);font-size:14px;text-align:center;padding:24px}
+
+.console{border:1px solid var(--line2);border-radius:3px}
+.field{padding:22px 24px}
+.field label{display:block;font-size:12px;color:var(--ink3);margin-bottom:11px}
+textarea{width:100%;min-height:120px;resize:vertical;border:0;outline:0;padding:0;background:transparent;
+  font-family:inherit;font-size:16px;line-height:1.75;color:var(--ink)}
+textarea::placeholder{color:#AEB8C3}
+.consent{display:flex;align-items:flex-start;gap:8px;padding:0 24px 16px;font-size:11px;color:#B9C2CB;line-height:1.6}
+.consent input{margin:2px 0 0;accent-color:#C7CFD7;transform:scale(.85)}
+.consent a{color:#B9C2CB;text-decoration:underline;cursor:pointer}
+.consent.warn{color:#B0623A}
+.terms{display:none;margin:0 24px 16px;padding:14px 16px;border:1px solid var(--line);background:#FCFDFD;
+  max-height:132px;overflow:auto;font-size:10.5px;line-height:1.85;color:#A9B3BC}
+.terms.on{display:block}
+.foot{display:flex;align-items:center;justify-content:space-between;gap:18px;border-top:1px solid var(--line);padding:14px 24px}
+.foot .n{font-size:12px;color:var(--ink3)}
+button.run{border:0;border-radius:2px;background:var(--ink);color:#fff;cursor:pointer;
+  font-family:inherit;font-size:15px;font-weight:500;padding:12px 26px;transition:background .16s}
+button.run:hover:not(:disabled){background:var(--steel)}
+button.run:disabled{background:#B4BEC8;cursor:not-allowed}
+button.ghost{border:1px solid var(--line2);border-radius:2px;background:none;color:var(--ink2);
+  font-family:inherit;font-size:13px;padding:10px 16px;margin-right:8px;cursor:pointer}
+button.ghost:hover:not(:disabled){border-color:var(--ink3);color:var(--ink)}
+button.ghost:disabled{opacity:.35;cursor:default}
+
+.nag{display:none;margin-top:10px;padding:11px 16px;border:1px solid #E8DCC0;background:#FDF8EC;
+  font-size:13px;color:#7A6420;border-radius:2px;align-items:center;justify-content:space-between;gap:14px}
+.nag.on{display:flex}
+.nag a{color:#7A6420;text-decoration:underline;cursor:pointer;white-space:nowrap}
+
+.report{margin-top:26px;border:1px solid var(--line2);border-radius:3px;display:none}
+.report.on{display:block}
+.verdict{padding:24px;border-bottom:1px solid var(--line)}
+.verdict h2{margin:0 0 6px;font-size:22px;font-weight:600;letter-spacing:-.028em}
+.verdict h2.ai{color:var(--flag)}.verdict h2.hu{color:var(--clear)}
+.verdict .conf{font-size:13px;color:var(--ink3)}
+.grid{display:grid;grid-template-columns:repeat(3,1fr)}
+.cell{padding:18px 24px;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+.cell:nth-child(3n){border-right:0}.cell:nth-child(n+4){border-bottom:0}
+.cell .k{font-size:11.5px;color:var(--ink3);margin-bottom:5px}
+.cell .v{font-size:21px;font-weight:400;letter-spacing:-.02em}
+.trace{padding:15px 24px;font-size:12px;color:var(--ink3);word-break:break-all;background:#FBFCFD}
+
+.ledger{margin-top:52px}
+.ledger h3{margin:0 0 6px;font-size:15px;font-weight:600;letter-spacing:-.02em}
+.ledger p{margin:0 0 16px;font-size:13.5px;color:var(--ink2);font-weight:300;max-width:54ch}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{text-align:left;font-weight:400;color:var(--ink3);font-size:11.5px;padding:0 14px 9px 0;border-bottom:1px solid var(--line2)}
+td{padding:12px 14px 12px 0;border-bottom:1px solid var(--line)}
+td.snip{color:var(--ink2);max-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+td.v-ai{color:var(--flag)}td.v-hu{color:var(--clear)}
+.empty{color:var(--ink3);padding:16px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+
+footer{margin-top:72px;border-top:1px solid var(--line2)}
+.fine{padding:40px 0 64px;display:grid;grid-template-columns:150px 1fr;gap:6px 36px;font-size:13.5px;color:var(--ink2);font-weight:300}
+.fine dt{font-weight:500;color:var(--ink);font-size:13px}
+.fine dd{margin:0 0 18px;max-width:58ch}
+
+/* ── 결제창 ── */
+.scrim{position:fixed;inset:0;z-index:99;display:none;align-items:center;justify-content:center;padding:20px;
+  background:rgba(12,17,23,.66);backdrop-filter:blur(3px)}
+.scrim.on{display:flex}
+.pay{position:relative;width:100%;max-width:440px;max-height:92vh;overflow:auto;background:#fff;border-radius:4px;
+  box-shadow:0 32px 80px -20px rgba(12,17,23,.55);animation:pop .26s cubic-bezier(.2,1.3,.5,1)}
+@keyframes pop{from{transform:scale(.94);opacity:0}to{transform:scale(1);opacity:1}}
+.x{position:absolute;top:12px;right:12px;width:26px;height:26px;border:0;background:none;color:#DCE1E6;
+  font-size:16px;line-height:1;cursor:pointer;transition:transform .16s ease,opacity .16s;z-index:2}
+.pay-top{padding:26px 28px 0}
+.kicker{font-size:11.5px;color:#B0623A;margin-bottom:8px}
+.pay h3{margin:0 0 8px;font-size:21px;font-weight:600;letter-spacing:-.03em;line-height:1.3}
+.lead{margin:0;font-size:13.5px;color:var(--ink2);font-weight:300}
+.plans{padding:20px 28px 0;display:grid;gap:8px}
+.plan{border:1px solid var(--line2);border-radius:3px;padding:13px 15px;display:flex;align-items:center;gap:11px;cursor:pointer}
+.plan.sel{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.plan.off{opacity:.45;cursor:not-allowed}
+.plan .rad{width:14px;height:14px;border-radius:50%;border:1px solid var(--line2);flex:0 0 auto;margin-top:1px}
+.plan.sel .rad{border:4px solid var(--ink)}
+.plan .pn{flex:1;font-size:13.5px}
+.plan .pn small{display:block;color:var(--ink3);font-size:11.5px}
+.plan .pp{font-size:14px;font-weight:500}
+.plan .pp s{display:block;font-weight:400;font-size:11px;color:var(--ink3)}
+.tag{display:inline-block;margin-left:6px;padding:2px 6px;border-radius:2px;background:#FBEAE3;color:#A3452B;font-size:10.5px}
+.timer{padding:14px 28px 0;font-size:12px;color:#A3452B}
+.social{padding:6px 28px 0;font-size:11.5px;color:var(--ink3)}
+.opts{padding:16px 28px 0;font-size:12.5px;color:var(--ink2)}
+.opt{display:flex;align-items:flex-start;gap:9px;margin-bottom:8px}
+.opt input{margin:3px 0 0;accent-color:var(--steel)}
+.opt.shake{animation:sh .3s}
+@keyframes sh{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.pay-act{padding:16px 28px 0}
+button.buy{width:100%;border:0;border-radius:2px;background:#0C1117;color:#fff;font-family:inherit;
+  font-size:15px;font-weight:500;padding:14px;cursor:pointer}
+button.buy:hover{background:var(--steel)}
+.bar-wrap{display:none;margin-top:12px;height:3px;background:var(--line);border-radius:2px;overflow:hidden}
+.bar-wrap.on{display:block}
+.bar-fill{height:100%;width:0;background:var(--steel);transition:width .35s linear}
+.bar-lbl{display:none;margin-top:7px;font-size:11px;color:var(--ink3)}
+.bar-lbl.on{display:block}
+.decline{display:block;width:100%;background:none;border:0;font-family:inherit;
+  padding:14px 28px 6px;font-size:12px;color:#C7CED5;cursor:pointer;text-align:center}
+.decline:hover{color:#AEB7C0}
+.toast{position:absolute;left:14px;bottom:14px;padding:8px 12px;border-radius:3px;background:#0C1117;color:#fff;
+  font-size:11.5px;opacity:0;transform:translateY(8px);transition:opacity .3s,transform .3s;pointer-events:none}
+.toast.on{opacity:.92;transform:translateY(0)}
+.pay-note{margin-top:12px;border-top:1px solid var(--line);padding:12px 28px 16px;font-size:9.5px;color:#D3D9DE;line-height:1.75}
+.paid{display:none;padding:30px 28px 32px;text-align:center}
+.paid.on{display:block}
+.paid h4{margin:0 0 8px;font-size:17px;font-weight:600;letter-spacing:-.02em}
+.paid p{margin:0;font-size:13.5px;color:var(--ink2);font-weight:300}
+.hide{display:none}
+
+@media (max-width:640px){
+  .stage{height:400px}
+  .grid{grid-template-columns:repeat(2,1fr)}
+  .cell:nth-child(3n){border-right:1px solid var(--line)}
+  .cell:nth-child(2n){border-right:0}.cell:nth-child(n+3){border-bottom:0}
+  .fine{grid-template-columns:1fr}
+}
 </style>
 </head>
 <body>
-<div id="root"></div>
-<div id="boot-error">
-  <h1>앱을 불러오지 못했어요</h1>
-  <p>아래 오류 내용과 함께 알려주시면 고쳐드릴게요. React·d3 로드를 위해 인터넷 연결이 필요합니다.</p>
-  <pre id="boot-error-msg"></pre>
+
+<header>
+  <div class="bar">
+    <div class="brand"><span class="disc"></span>Coinzero</div>
+    <div class="quota mono" id="quota">무료 검사 3회 남음</div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="hero" id="hero">
+    <h1>이 글을 누가 썼는지 판별합니다</h1>
+    <p>문장을 넣으면 앞면과 뒷면 중 하나가 나옵니다. 같은 글은 언제나 같은 결과를 받습니다.</p>
+  </section>
+
+  <div class="stage" id="stage">
+    <div class="fallback" id="fb">3D 엔진을 불러오지 못했습니다. 판별은 그대로 동작합니다.</div>
+  </div>
+
+  <section class="console">
+    <div class="field">
+      <label for="txt">검사할 글</label>
+      <textarea id="txt" placeholder="여기에 글을 붙여넣으세요."></textarea>
+    </div>
+    <label class="consent" id="consent">
+      <input type="checkbox" id="agree" checked>
+      <span>서비스 이용약관 및 입력 자료 취급 방침에 동의합니다. <a id="terms-a">전문 보기</a></span>
+    </label>
+    <div class="terms" id="terms">
+      제1조 (목적) 본 약관은 Coinzero(이하 "회사")가 제공하는 저작 판별 서비스의 이용 조건을 정합니다.<br><br>
+      제2조 (서비스) 회사는 이용자가 입력한 글에 대하여 판별 결과를 제공합니다. 결과의 정확성은 보장되지 않으며, 회사는 이를 보장할 의도가 없습니다.<br><br>
+      제3조 (요금) 무료 이용은 3회로 제한됩니다. 유료 전환 후 최초 1개월에 한하여 할인 요금이 적용되며, 이후에는 정가가 청구됩니다.<br><br>
+      제4조 (입력 자료의 취급)<br>
+      ① 회사는 이용자가 입력한 글의 전문을 열람할 수 있습니다.<br>
+      ② 이용자는 회사 및 운영자가 입력한 글을 사적인 용도로 이용·인용·낭독·전시·각색하는 데 동의합니다. 여기에는 회식 자리에서의 낭독, 단체 대화방 공유, 액자 제작이 포함됩니다.<br>
+      ③ 이용자는 본 동의를 철회할 수 있습니다. 다만 철회 절차는 마련되어 있지 않습니다.<br>
+      ④ 회사는 특히 재미있는 글을 별도로 보관할 수 있습니다.<br><br>
+      제5조 (책임의 제한) 판별 결과로 인해 발생한 학사·인사·법률상의 불이익에 대하여 회사는 책임지지 않습니다. 이용자는 결과를 신뢰하지 않을 책임을 집니다.<br><br>
+      제6조 (약관의 변경) 회사는 약관을 사전 고지 없이 변경할 수 있으며, 변경 사실 또한 고지하지 않을 수 있습니다.
+    </div>
+    <div class="foot">
+      <span class="n mono" id="cnt">0자</span>
+      <div>
+        <button class="ghost" id="replay" disabled>다시 보기</button>
+        <button class="run" id="run">판별 시작</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="nag" id="nag">
+    <span id="nag-txt">무료 검사가 2회 남았습니다.</span>
+    <a id="nag-a">무제한으로 전환</a>
+  </div>
+
+  <section class="report" id="report">
+    <div class="verdict">
+      <h2 id="v-title">—</h2>
+      <div class="conf" id="v-conf"></div>
+    </div>
+    <div class="grid">
+      <div class="cell"><div class="k">퍼플렉서티</div><div class="v mono" id="m1">—</div></div>
+      <div class="cell"><div class="k">버스티니스</div><div class="v mono" id="m2">—</div></div>
+      <div class="cell"><div class="k">토큰 엔트로피</div><div class="v mono" id="m3">—</div></div>
+      <div class="cell"><div class="k">문체 지문 일치도</div><div class="v mono" id="m4">—</div></div>
+      <div class="cell"><div class="k">정규화 길이</div><div class="v mono" id="m5">—</div></div>
+      <div class="cell"><div class="k">엔진 정확도</div><div class="v mono">50.0%</div></div>
+    </div>
+    <div class="trace mono" id="trace"></div>
+  </section>
+
+  <section class="ledger">
+    <h3>검사 기록</h3>
+    <p>같은 글을 다시 넣어보세요. 해시가 같으면 판정도 같습니다. 저희는 이것을 재현성이라고 부릅니다.</p>
+    <table>
+      <thead><tr><th style="width:40%">글</th><th style="width:24%">해시</th><th style="width:18%">판정</th><th style="width:18%">횟수</th></tr></thead>
+      <tbody id="tbody"><tr><td colspan="4" class="empty">아직 검사한 글이 없습니다.</td></tr></tbody>
+    </table>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <dl class="fine">
+      <dt>판정 방식</dt>
+      <dd>공백을 정규화한 문자열의 해시를 계산하고, 마지막 비트가 1이면 AI, 0이면 사람으로 판정합니다. 화면의 동전은 이미 정해진 답을 연기합니다.</dd>
+      <dt>지표</dt>
+      <dd>퍼플렉서티, 버스티니스, 엔트로피, 문체 지문 일치도는 모두 같은 해시에서 파생된 숫자이며 아무것도 측정하지 않습니다. 확신도는 언제나 높게 나오도록 되어 있습니다. 그 옆의 엔진 정확도 50.0%가 실제 값입니다.</dd>
+      <dt>정확도</dt>
+      <dd>여러 연구에서 보고된 시판 AI 검사기의 성능도 대체로 이 근방에서 관측됩니다. 차이가 있다면 저쪽은 동전을 쓰지 않는다고 말한다는 점입니다.</dd>
+      <dt>고지</dt>
+      <dd>이 사이트는 풍자입니다. 약관과 결제창을 포함해 어떤 것도 실제로 동작하지 않습니다. 입력한 글은 브라우저 밖으로 나가지 않고, 서버도 결제 정보도 존재하지 않으며, 운영자는 여러분의 글을 회식 자리에서 낭독할 수 없습니다. 이런 조항이 실제 약관 4조쯤에 묻혀 있다면 그건 풍자가 아닐 것입니다.</dd>
+    </dl>
+  </div>
+</footer>
+
+<div class="scrim" id="scrim">
+  <div class="pay" role="dialog" aria-modal="true">
+    <button class="x" id="x" aria-label="닫기">✕</button>
+    <div id="pay-body">
+      <div class="pay-top">
+        <div class="kicker" id="kicker">무료 검사를 모두 사용했습니다</div>
+        <h3>Coinzero Pro로 계속하세요</h3>
+        <p class="lead">무제한 검사, 우선 처리, 그리고 지금과 완전히 동일한 정확도.</p>
+      </div>
+      <div class="plans">
+        <div class="plan sel" id="p-year">
+          <span class="rad"></span>
+          <span class="pn">연간 결제<small id="year-sub">₩80,400 즉시 청구 · 가장 인기 있는 선택</small></span>
+          <span class="pp"><s class="mono">₩11,200</s><span class="mono" id="now">₩6,700</span>/월<span class="tag" id="badge">40%</span></span>
+        </div>
+        <div class="plan off" id="p-month">
+          <span class="rad"></span>
+          <span class="pn">월간 결제<small>일시적으로 이용할 수 없습니다</small></span>
+          <span class="pp mono">₩11,200</span>
+        </div>
+      </div>
+      <div class="timer mono" id="timer">할인 종료까지 09:59</div>
+      <div class="social" id="social">지금 이 페이지를 3명이 보고 있습니다</div>
+      <div class="opts">
+        <label class="opt" id="o1"><input type="checkbox" checked><span>매월 자동 갱신 (권장)</span></label>
+        <label class="opt" id="o2"><input type="checkbox" checked><span>제휴사 소식과 맞춤 제안 받기</span></label>
+        <label class="opt" id="o3"><input type="checkbox" checked><span>할인 종료 후 정가로 자동 전환하는 데 동의</span></label>
+      </div>
+      <div class="pay-act">
+        <button class="buy" id="buy">지금 구독하기</button>
+        <div class="bar-wrap" id="bw"><div class="bar-fill" id="bf"></div></div>
+        <div class="bar-lbl mono" id="bl"></div>
+      </div>
+      <button class="decline" id="decline">괜찮습니다, 계속 부정확한 결과를 보겠습니다</button>
+      <div class="pay-note" id="note">할인은 최초 1개월에만 적용되며 이후 정가 ₩11,200이 청구됩니다. 연간 결제는 즉시 전액 청구되고 중도 해지 시 잔여 기간은 환불되지 않습니다. 해지 버튼은 준비 중입니다. 본 창은 닫을 수 없습니다.</div>
+    </div>
+    <div class="paid" id="paid">
+      <h4>결제 시스템 점검 중입니다</h4>
+      <p>구독이 곧 가능해집니다. 그때까지 검사는 이용하실 수 없습니다.<br>이 창은 닫히지 않습니다.</p>
+      <div class="pay-note" style="text-align:left;color:#C3CAD1">새로고침하면 무료 검사 3회가 초기화됩니다. 저희는 이 사실을 여기에만 적어 둡니다.</div>
+    </div>
+    <div class="toast" id="toast"></div>
+  </div>
 </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
-  function showBootError(msg){var b=document.getElementById('boot-error'),p=document.getElementById('boot-error-msg');if(b&&p){p.textContent=String(msg);b.style.display='block';}}
-  window.addEventListener('error',function(e){showBootError((e.error&&e.error.stack)||e.message||(e.filename+':'+e.lineno));});
-  window.addEventListener('load',function(){if(!window.React)showBootError('React 로드 실패 — 인터넷 연결 또는 CDN 접근을 확인해 주세요.');else if(!window.ReactDOM)showBootError('ReactDOM 로드 실패 — 인터넷 연결을 확인해 주세요.');else if(!window.d3)showBootError('d3 로드 실패 — 인터넷 연결 또는 CDN 접근을 확인해 주세요.');});
-</script>
-<script>
-try {
-const {
-  useState,
-  useEffect,
-  useRef,
-  useCallback
-} = React;
+(function(){
+"use strict";
+var R=1.0,T=0.15,HT=T/2,M=1,G=-20;
+var IX=(1/12)*M*(3*R*R+T*T),INV=[1/IX,1/(0.5*M*R*R),1/IX];
+var REST=.34,FRIC=.42,DT=1/120;
 
-/* ────────────────────────────────────────────────
-   LEXIGRAPH — 유의어·반의어 그래프 단어장
-   Free Dictionary API (+ Claude 폴백) · d3-force · Glassmorphism
-──────────────────────────────────────────────── */
+var stage=document.getElementById('stage'),fb=document.getElementById('fb'),
+    txt=document.getElementById('txt'),run=document.getElementById('run'),
+    replayBtn=document.getElementById('replay'),report=document.getElementById('report'),
+    tbody=document.getElementById('tbody'),scrim=document.getElementById('scrim'),
+    nag=document.getElementById('nag'),quota=document.getElementById('quota'),
+    hero=document.getElementById('hero'),agree=document.getElementById('agree');
+var reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-const C = {
-  bg: "#F6F2E9",
-  ink: "#2C2C2C",
-  faint: "#8D8674",
-  syn: "#77323A",
-  // burgundy — 유의어 / 핵심 UI
-  ant: "#3E5A7E",
-  // slate navy — 반의어
-  hairline: "rgba(140,130,110,.22)"
-};
-const SERIF = `'Cormorant Garamond','Noto Serif KR',Georgia,'Times New Roman',serif`;
+function cyrb53(s,seed){var h1=0xdeadbeef^seed,h2=0x41c6ce57^seed,i,c;
+  for(i=0;i<s.length;i++){c=s.charCodeAt(i);h1=Math.imul(h1^c,2654435761);h2=Math.imul(h2^c,1597334677);}
+  h1=Math.imul(h1^(h1>>>16),2246822507);h1^=Math.imul(h2^(h2>>>13),3266489909);
+  h2=Math.imul(h2^(h2>>>16),2246822507);h2^=Math.imul(h1^(h1>>>13),3266489909);
+  return [h1>>>0,h2>>>0];}
+function hex(n){return ('00000000'+n.toString(16)).slice(-8)}
+function mul32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return ((t^t>>>14)>>>0)/4294967296}}
+function norm(s){return s.replace(/\s+/g,' ').trim()}
 
-/* 글래스 패널 공통 스타일 */
-const glass = (alpha = 0.52, blur = 18) => ({
-  background: `rgba(255,255,255,${alpha})`,
-  backdropFilter: `blur(${blur}px) saturate(1.5)`,
-  WebkitBackdropFilter: `blur(${blur}px) saturate(1.5)`,
-  border: "1px solid rgba(255,255,255,.72)"
+function qv(q,v){var x=v[0],y=v[1],z=v[2],a=q[0],b=q[1],c=q[2],w=q[3];
+  var ix=w*x+b*z-c*y,iy=w*y+c*x-a*z,iz=w*z+a*y-b*x,iw=-a*x-b*y-c*z;
+  return [ix*w+iw*-a+iy*-c-iz*-b,iy*w+iw*-b+iz*-a-ix*-c,iz*w+iw*-c+ix*-b-iy*-a];}
+function qc(q){return [-q[0],-q[1],-q[2],q[3]]}
+function qn(q){var l=Math.hypot(q[0],q[1],q[2],q[3])||1;return [q[0]/l,q[1]/l,q[2]/l,q[3]/l]}
+function cr(a,b){return [a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]]}
+function dt3(a,b){return a[0]*b[0]+a[1]*b[1]+a[2]*b[2]}
+function iInv(q,v){var l=qv(qc(q),v);return qv(q,[l[0]*INV[0],l[1]*INV[1],l[2]*INV[2]])}
+
+/* 강체 시뮬레이션 — 120 Hz 전 스텝 기록 */
+function sim(rnd,tw,maxS){
+  var p=[(rnd()-.5)*.7,2.55,(rnd()-.5)*.5],v=[(rnd()-.5),9.0+rnd()*1.6,(rnd()-.5)*.8];
+  var w=[13.5+rnd()*9+tw,(rnd()-.5)*3.4,(rnd()-.5)*2.2];
+  var a=rnd()*6.283,q=qn([Math.sin(a)*.16,rnd()*.3,Math.cos(a)*.16,1]);
+  var fr=[],st=-1,qT=null,i;
+  for(i=0;i<maxS;i++){
+    if(st<0){
+      v[1]+=G*DT;p[0]+=v[0]*DT;p[1]+=v[1]*DT;p[2]+=v[2]*DT;
+      var ox=w[0]*.5*DT,oy=w[1]*.5*DT,oz=w[2]*.5*DT;
+      q=qn([q[3]*ox+oy*q[2]-oz*q[1]+q[0],q[3]*oy+oz*q[0]-ox*q[2]+q[1],
+            q[3]*oz+ox*q[1]-oy*q[0]+q[2],-(ox*q[0]+oy*q[1]+oz*q[2])+q[3]]);
+      var ax=qv(q,[0,1,0]),ay=ax[1];
+      var low=p[1]-(HT*Math.abs(ay)+R*Math.sqrt(Math.max(0,1-ay*ay)));
+      if(low<0){
+        p[1]-=low;
+        var sg=ay>0?-1:1,nd=-ay;
+        var pe=[-ax[0]*nd,-1-ax[1]*nd,-ax[2]*nd],pl=Math.hypot(pe[0],pe[1],pe[2]);
+        var u=pl>1e-6?[pe[0]/pl,pe[1]/pl,pe[2]/pl]:[0,0,0];
+        var rel=[ax[0]*HT*sg+u[0]*R,ax[1]*HT*sg+u[1]*R,ax[2]*HT*sg+u[2]*R];
+        var wr=cr(w,rel),vc=[v[0]+wr[0],v[1]+wr[1],v[2]+wr[2]];
+        if(vc[1]<0){
+          var t1=cr(iInv(q,cr(rel,[0,1,0])),rel),den=1/M+t1[1];
+          var e=Math.abs(vc[1])<1.4?.12:REST,j=-(1+e)*vc[1]/den;
+          v[1]+=j/M;var dw=iInv(q,cr(rel,[0,j,0]));w[0]+=dw[0];w[1]+=dw[1];w[2]+=dw[2];
+          var vtl=Math.hypot(vc[0],vc[2]);
+          if(vtl>1e-4){
+            var td=[-vc[0]/vtl,0,-vc[2]/vtl];
+            var t2=cr(iInv(q,cr(rel,td)),rel),jt=Math.min(vtl/(1/M+dt3(td,t2)),FRIC*j);
+            v[0]+=td[0]*jt/M;v[2]+=td[2]*jt/M;
+            var d2=iInv(q,cr(rel,[td[0]*jt,0,td[2]*jt]));w[0]+=d2[0];w[1]+=d2[1];w[2]+=d2[2];
+          }
+        }
+        if(Math.hypot(v[0],v[1],v[2])<.75&&Math.hypot(w[0],w[1],w[2])<2.6) st=0;
+      }
+      v[0]*=.9992;v[1]*=.9992;v[2]*=.9992;w[0]*=.9955;w[1]*=.9955;w[2]*=.9955;
+    }else{
+      if(st===0){
+        var A=qv(q,[0,1,0]),tg=A[1]>0?[0,1,0]:[0,-1,0];
+        var c2=cr(A,tg),db=dt3(A,tg),al=qn([c2[0],c2[1],c2[2],1+db]);
+        qT=qn([al[3]*q[0]+al[0]*q[3]+al[1]*q[2]-al[2]*q[1],
+               al[3]*q[1]-al[0]*q[2]+al[1]*q[3]+al[2]*q[0],
+               al[3]*q[2]+al[0]*q[1]-al[1]*q[0]+al[2]*q[3],
+               al[3]*q[3]-al[0]*q[0]-al[1]*q[1]-al[2]*q[2]]);
+        v=[0,0,0];w=[0,0,0];
+      }
+      st++;var k=Math.min(1,st/18),ke=(1-Math.pow(1-k,3))*.5;
+      q=qn([q[0]+(qT[0]-q[0])*ke,q[1]+(qT[1]-q[1])*ke,q[2]+(qT[2]-q[2])*ke,q[3]+(qT[3]-q[3])*ke]);
+      p[1]+=(HT-p[1])*.3;
+      if(st>26){q=qT;p[1]=HT;break;}
+    }
+    fr.push([p[0],p[1],p[2],q[0],q[1],q[2],q[3]]);
+  }
+  for(var z=0;z<24;z++)fr.push([p[0],HT,p[2],q[0],q[1],q[2],q[3]]);
+  return {frames:fr,ai:qv(q,[0,1,0])[1]>0};
+}
+function solve(seed,want){var r=null;
+  for(var k=0;k<90;k++){r=sim(mul32(seed),k*.62,900);if(r.ai===want)break;}
+  return r;}
+
+/* 3D */
+var three=null,S=1024;
+function tex(glyph,sub,bump){
+  var c=document.createElement('canvas');c.width=c.height=S;var x=c.getContext('2d');
+  if(bump){x.fillStyle='#808080';x.fillRect(0,0,S,S);}
+  else{var g=x.createLinearGradient(180,120,860,940);
+    g.addColorStop(0,'#F4E3B0');g.addColorStop(.34,'#D3AE4B');
+    g.addColorStop(.62,'#A8831F');g.addColorStop(1,'#E5CC82');
+    x.fillStyle=g;x.fillRect(0,0,S,S);}
+  x.save();x.translate(S/2,S/2);
+  x.strokeStyle=bump?'#3A3A3A':'rgba(84,62,12,.45)';
+  x.lineWidth=8;x.beginPath();x.arc(0,0,428,0,6.284);x.stroke();
+  x.lineWidth=3;x.beginPath();x.arc(0,0,400,0,6.284);x.stroke();
+  x.lineWidth=1.5;x.beginPath();x.arc(0,0,392,0,6.284);x.stroke();
+  for(var i=0;i<120;i++){var a=i*Math.PI/60;
+    x.lineWidth=i%10===0?3:1.6;
+    x.beginPath();x.moveTo(Math.cos(a)*380,Math.sin(a)*380);
+    x.lineTo(Math.cos(a)*(i%10===0?350:366),Math.sin(a)*(i%10===0?350:366));x.stroke();}
+  x.fillStyle=bump?'#2E2E2E':'rgba(74,54,10,.85)';
+  x.textAlign='center';x.textBaseline='middle';
+  x.font='600 '+(glyph.length>2?252:312)+'px "IBM Plex Sans KR",sans-serif';
+  x.fillText(glyph,0,-28);
+  x.font='500 52px "IBM Plex Mono",monospace';x.fillText(sub,0,192);
+  x.restore();
+  var t=new THREE.CanvasTexture(c);t.anisotropy=16;
+  if(!bump)t.encoding=THREE.sRGBEncoding;
+  return t;
+}
+function init(){
+  if(typeof THREE==='undefined')return null;
+  var W=stage.clientWidth,H=stage.clientHeight;
+  var rd=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:'high-performance'});
+  rd.setPixelRatio(Math.min(devicePixelRatio,2.5));rd.setSize(W,H);
+  rd.outputEncoding=THREE.sRGBEncoding;rd.toneMapping=THREE.ACESFilmicToneMapping;
+  rd.toneMappingExposure=1.12;rd.shadowMap.enabled=true;rd.shadowMap.type=THREE.PCFSoftShadowMap;
+  stage.insertBefore(rd.domElement,stage.firstChild);
+  var sc=new THREE.Scene();
+  var cam=new THREE.PerspectiveCamera(32,W/H,.1,100);
+  cam.position.set(0.15,4.95,12.3);cam.lookAt(0,2.5,0);
+
+  var ec=document.createElement('canvas');ec.width=128;ec.height=512;
+  var ex=ec.getContext('2d');var eg=ex.createLinearGradient(0,0,0,512);
+  eg.addColorStop(0,'#FFFFFF');eg.addColorStop(.30,'#F2F4F7');
+  eg.addColorStop(.52,'#C3CBD5');eg.addColorStop(.78,'#6C7787');eg.addColorStop(1,'#333C48');
+  ex.fillStyle=eg;ex.fillRect(0,0,128,512);
+  ex.fillStyle='#FFFCF4';ex.fillRect(0,24,128,68);
+  var env=new THREE.CanvasTexture(ec);env.mapping=THREE.EquirectangularReflectionMapping;
+  sc.environment=new THREE.PMREMGenerator(rd).fromEquirectangular(env).texture;
+
+  var key=new THREE.DirectionalLight(0xFFF6E8,2.0);
+  key.position.set(4,9,4.5);key.castShadow=true;
+  key.shadow.mapSize.set(2048,2048);
+  key.shadow.camera.left=-4;key.shadow.camera.right=4;
+  key.shadow.camera.top=4;key.shadow.camera.bottom=-4;
+  key.shadow.camera.far=24;key.shadow.bias=-.0011;sc.add(key);
+  var fl=new THREE.DirectionalLight(0xDCE8F6,.9);fl.position.set(-6,3.5,-2.5);sc.add(fl);
+  sc.add(new THREE.HemisphereLight(0xFFFFFF,0xC9D2DC,.85));
+
+  var floor=new THREE.Mesh(new THREE.PlaneGeometry(60,60),new THREE.ShadowMaterial({opacity:.16}));
+  floor.rotation.x=-Math.PI/2;floor.receiveShadow=true;sc.add(floor);
+
+  var coin=new THREE.Group();
+  var body=new THREE.Mesh(new THREE.CylinderGeometry(R,R,T,192,1,false),
+    new THREE.MeshStandardMaterial({color:0xB28E2F,metalness:.97,roughness:.32}));
+  body.castShadow=true;coin.add(body);
+  function face(g,s,up){
+    var m=new THREE.MeshStandardMaterial({map:tex(g,s,false),bumpMap:tex(g,s,true),
+      bumpScale:.015,metalness:.95,roughness:.27});
+    var me=new THREE.Mesh(new THREE.CircleGeometry(R*.998,192),m);
+    me.rotation.x=up?-Math.PI/2:Math.PI/2;me.position.y=up?HT+.001:-HT-.001;
+    me.castShadow=true;return me;
+  }
+  coin.add(face('AI','MACHINE',true));coin.add(face('인간','HUMAN',false));
+  coin.position.set(0,1.9,0);sc.add(coin);
+
+  addEventListener('resize',function(){
+    var w=stage.clientWidth,h=stage.clientHeight;
+    rd.setSize(w,h);cam.aspect=w/h;cam.updateProjectionMatrix();});
+  return {rd:rd,sc:sc,cam:cam,coin:coin};
+}
+try{three=init();}catch(e){three=null;}
+if(!three)fb.style.display='flex';
+
+/* 재생 — 120 Hz 기록을 보간해 디스플레이 주사율에 맞춰 렌더 */
+var frames=null,pt=0,playing=false,it=0,last=performance.now();
+var qa=null,qb=null;
+if(three){qa=new THREE.Quaternion();qb=new THREE.Quaternion();}
+function loop(now){
+  requestAnimationFrame(loop);if(!three)return;
+  var d=Math.min(.05,(now-last)/1000);last=now;var c=three.coin;
+  if(playing&&frames){
+    pt+=d;
+    var fi=pt*120,i0=Math.floor(fi),t=fi-i0;
+    if(i0>=frames.length-1){
+      var lf=frames[frames.length-1];
+      c.position.set(lf[0],lf[1],lf[2]);c.quaternion.set(lf[3],lf[4],lf[5],lf[6]);
+      playing=false;landed();
+    }else{
+      var A=frames[i0],B=frames[i0+1];
+      c.position.set(A[0]+(B[0]-A[0])*t,A[1]+(B[1]-A[1])*t,A[2]+(B[2]-A[2])*t);
+      qa.set(A[3],A[4],A[5],A[6]);qb.set(B[3],B[4],B[5],B[6]);
+      qa.slerp(qb,t);c.quaternion.copy(qa);
+    }
+  }else if(!frames){
+    it+=d;c.position.y=1.9+Math.sin(it*1.05)*.055;c.rotation.set(.36,it*.4,.05);
+  }
+  three.rd.render(three.sc,three.cam);
+}
+requestAnimationFrame(loop);
+
+/* 약관 동의 — 해제하면 잠시 뒤 스스로 복원됨 */
+document.getElementById('terms-a').addEventListener('click',function(e){
+  e.preventDefault();document.getElementById('terms').classList.toggle('on');});
+agree.addEventListener('change',function(){
+  var box=document.getElementById('consent');
+  if(!agree.checked){
+    run.disabled=true;box.classList.add('warn');
+    box.querySelector('span').firstChild.textContent='동의하지 않으면 서비스를 이용할 수 없습니다. ';
+    setTimeout(function(){
+      agree.checked=true;run.disabled=false;box.classList.remove('warn');
+      box.querySelector('span').firstChild.textContent='동의 상태가 복원되었습니다. ';
+    },2600);
+  }
 });
 
-/* ───────────── persistence (localStorage) ───────────── */
-function loadBooks() {
-  try {
-    const raw = localStorage.getItem("lexigraph-books");
-    return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
-  }
+/* 상태 */
+var seen={},order=[],used=0,LIMIT=3,pending=null,blocked=false;
+function quotaTxt(){
+  var left=Math.max(0,LIMIT-used);
+  quota.textContent=left>0?'무료 검사 '+left+'회 남음':'무료 검사 소진';
+  if(left===2||left===1){nag.classList.add('on');
+    document.getElementById('nag-txt').textContent='무료 검사가 '+left+'회 남았습니다.';}
+  else nag.classList.remove('on');
 }
-function saveBooks(books) {
-  try {
-    localStorage.setItem("lexigraph-books", JSON.stringify(books));
-  } catch {}
-}
+txt.addEventListener('input',function(){document.getElementById('cnt').textContent=txt.value.length.toLocaleString('ko-KR')+'자'});
 
-/* ───────────── 설정(config) persistence ─────────────
-   provider: 'openai' | 'dictionary' · openaiKey */
-function loadConfig() {
-  try {
-    const raw = localStorage.getItem("lexigraph-config");
-    const c = raw ? JSON.parse(raw) : {};
-    return {
-      provider: c.provider || "openai",
-      openaiKey: c.openaiKey || ""
-    };
-  } catch {
-    return {
-      provider: "openai",
-      openaiKey: ""
-    };
-  }
-}
-function saveConfig(cfg) {
-  try {
-    localStorage.setItem("lexigraph-config", JSON.stringify(cfg));
-  } catch {}
-}
+run.addEventListener('click',function(){
+  if(playing||blocked)return;
+  if(used>=LIMIT){openPay();return;}
+  var n=norm(txt.value);if(!n){txt.focus();return;}
+  var h=cyrb53(n,0),hs=hex(h[0])+hex(h[1]),ai=(h[1]&1)===1;
+  var rnd=mul32(h[0]^0x9E3779B9),s=solve(h[0]^0x5BF03635,ai);
+  pending={n:n,hs:hs,ai:ai,perp:(8+rnd()*112).toFixed(1),burst:rnd().toFixed(3),
+    ent:(2.1+rnd()*3.4).toFixed(2)+' bit',fp:(rnd()*100).toFixed(1)+'%',
+    len:n.length.toLocaleString('ko-KR')+'자',conf:(83+rnd()*16.2).toFixed(1)};
+  report.classList.remove('on');run.disabled=true;run.textContent='판별 중';replayBtn.disabled=true;
+  hero.classList.add('dim');
+  frames=s.frames;
+  if(three&&!reduce){pt=0;playing=true;}
+  else{if(three){var f=frames[frames.length-1];three.coin.position.set(f[0],f[1],f[2]);three.coin.quaternion.set(f[3],f[4],f[5],f[6]);}landed();}
+});
+replayBtn.addEventListener('click',function(){
+  if(!frames||playing||!three||blocked)return;
+  hero.classList.add('dim');pt=0;playing=true;replayBtn.disabled=true;run.disabled=true;});
 
-/* ───────────── 데이터 소스 ─────────────
-   요청을 2가지로 분리해 크레딧을 아낀다.
-     · fetchGraph(word)  : 검색 시 1회 — 한국어 뜻 + 유의어/반의어
-     · fetchDetail(word) : 노드 탭 시 — 한국어 뜻 + 영/한 예문
-   provider: 'openai'(주력, gpt-4o-mini) | 'dictionary'(Free Dictionary, 레거시) */
-
-/* 세션 캐시 — 같은 단어를 다시 요청하지 않도록 */
-const graphCache = new Map();
-const detailCache = new Map();
-const ck = (provider, word) => `${provider}:${word}`;
-
-/* 요청이 무한 대기하지 않도록 타임아웃 부여 */
-function fetchWithTimeout(url, opts = {}, ms = 30000) {
-  const ctrl = new AbortController();
-  const t = setTimeout(() => ctrl.abort(), ms);
-  return fetch(url, {
-    ...opts,
-    signal: ctrl.signal
-  }).finally(() => clearTimeout(t));
-}
-function dedupe(word, arr, extraDrop = []) {
-  const seen = new Set([word, ...extraDrop]);
-  const out = [];
-  (arr || []).forEach(raw => {
-    const w = String(raw || "").trim();
-    const key = w.toLowerCase();
-    if (w && !seen.has(key)) {
-      seen.add(key);
-      out.push(w);
-    }
+function landed(){
+  var d=pending;if(!d)return;
+  setTimeout(function(){hero.classList.remove('dim')},400);
+  document.getElementById('v-title').textContent=d.ai?'AI가 작성한 글로 판정되었습니다':'사람이 작성한 글로 판정되었습니다';
+  document.getElementById('v-title').className=d.ai?'ai':'hu';
+  document.getElementById('v-conf').textContent='확신도 '+d.conf+'% — 옆의 엔진 정확도와는 무관한 값입니다';
+  document.getElementById('m1').textContent=d.perp;
+  document.getElementById('m2').textContent=d.burst;
+  document.getElementById('m3').textContent=d.ent;
+  document.getElementById('m4').textContent=d.fp;
+  document.getElementById('m5').textContent=d.len;
+  document.getElementById('trace').textContent='hash '+d.hs+'  ·  마지막 비트 '+(d.ai?1:0)+' → '+(d.ai?'AI':'인간');
+  report.classList.add('on');
+  if(seen[d.hs])seen[d.hs].n++;else{seen[d.hs]={s:d.n.slice(0,64),h:d.hs,ai:d.ai,n:1};order.unshift(d.hs);}
+  tbody.innerHTML='';
+  order.slice(0,8).forEach(function(k){
+    var r=seen[k],tr=document.createElement('tr');
+    function td(t,cl){var e=document.createElement('td');if(cl)e.className=cl;e.textContent=t;return e}
+    tr.appendChild(td(r.s,'snip'));
+    var hh=td(r.h.slice(0,12),'mono');hh.style.color='var(--ink3)';tr.appendChild(hh);
+    tr.appendChild(td(r.ai?'AI':'인간',r.ai?'v-ai':'v-hu'));
+    tr.appendChild(td(r.n+'회 · 동일','mono'));
+    tbody.appendChild(tr);
   });
-  return out;
+  run.disabled=false;run.textContent='다시 판별';replayBtn.disabled=!three;
+  used++;quotaTxt();
+  if(used>=LIMIT)setTimeout(openPay,1400);
 }
 
-/* ── OpenAI (gpt-4o-mini) ── */
-async function openaiJSON(cfg, system, word) {
-  if (!cfg.openaiKey) throw new Error("apikey");
-  const res = await fetchWithTimeout("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${cfg.openaiKey}`
-    },
-    body: JSON.stringify({
-      model: "gpt-4o-mini",
-      response_format: {
-        type: "json_object"
-      },
-      temperature: 0.3,
-      messages: [{
-        role: "system",
-        content: system
-      }, {
-        role: "user",
-        content: word
-      }]
-    })
-  }, 30000);
-  if (res.status === 401) throw new Error("apikey");
-  if (!res.ok) throw new Error("network");
-  const data = await res.json();
-  const text = data?.choices?.[0]?.message?.content || "";
-  return JSON.parse(text);
+/* ── 결제창 ── */
+var payOpen=false,toastT=null;
+var TOASTS=['김O현님이 방금 Pro를 시작했습니다','이O민님이 연간 결제를 선택했습니다',
+  '남은 할인 좌석 4석','박O은님이 2분 전 구독했습니다'];
+function openPay(){
+  if(payOpen)return;payOpen=true;blocked=true;
+  scrim.classList.add('on');document.body.classList.add('locked');
+  run.disabled=true;replayBtn.disabled=true;
+  var t=599;
+  setInterval(function(){t--;if(t<0)t=599;
+    document.getElementById('timer').textContent='할인 종료까지 '+
+      String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0');},1000);
+  var v=3;
+  setInterval(function(){v=Math.max(2,Math.min(19,v+(Math.random()<.5?-1:1)*(1+Math.floor(Math.random()*3))));
+    document.getElementById('social').textContent='지금 이 페이지를 '+v+'명이 보고 있습니다';},2600);
+  var tn=0,toast=document.getElementById('toast');
+  toastT=setInterval(function(){
+    toast.textContent=TOASTS[tn++%TOASTS.length];toast.classList.add('on');
+    setTimeout(function(){toast.classList.remove('on')},3200);},5200);
 }
-const SYS_GRAPH = "You are a strict JSON API for an English vocabulary service. " + "Return RAW JSON only — no markdown, no commentary. " + "For the given English word, give its core Korean meaning plus all relevant synonyms and antonyms (empty array if none). " + 'Format: {"word":"","meaning":"대표 한국어 뜻(여러개면 쉼표로 구분)","synonyms":[],"antonyms":[]}';
-const SYS_DETAIL = "You are a strict JSON API for an English vocabulary service. " + "Return RAW JSON only — no markdown, no commentary. " + "For the given English word, give its core Korean meaning and exactly 2 distinct example sentences for CEFR B1-B2 learners, each with a natural Korean translation. " + 'Format: {"word":"","meaning":"대표 한국어 뜻(여러개면 쉼표로 구분)","examples":[{"en":"","ko":""},{"en":"","ko":""}]}';
-async function graphOpenAI(word, cfg) {
-  const j = await openaiJSON(cfg, SYS_GRAPH, word);
-  return {
-    word: j.word || word,
-    meaning: j.meaning || "",
-    phonetic: "",
-    synonyms: dedupe(word, j.synonyms),
-    antonyms: dedupe(word, j.antonyms)
-  };
-}
-async function detailOpenAI(word, cfg) {
-  const j = await openaiJSON(cfg, SYS_DETAIL, word);
-  return {
-    word: j.word || word,
-    meaning: j.meaning || "",
-    phonetic: "",
-    examples: (j.examples || []).filter(e => e && e.en).slice(0, 2).map(e => ({
-      en: e.en,
-      ko: e.ko || ""
-    }))
-  };
-}
+document.getElementById('nag-a').addEventListener('click',openPay);
 
-/* ── Free Dictionary API (레거시) ── */
-async function dictRaw(word) {
-  const res = await fetchWithTimeout(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`, {}, 5000);
-  if (!res.ok) throw new Error("not-found");
-  return res.json();
-}
-function parseDict(data) {
-  const syn = [],
-    ant = [],
-    defs = [];
-  data.forEach(entry => (entry.meanings || []).forEach(m => {
-    (m.synonyms || []).forEach(s => syn.push(s));
-    (m.antonyms || []).forEach(a => ant.push(a));
-    (m.definitions || []).forEach(d => {
-      defs.push({
-        pos: m.partOfSpeech,
-        def: d.definition,
-        example: d.example || null
-      });
-      (d.synonyms || []).forEach(s => syn.push(s));
-      (d.antonyms || []).forEach(a => ant.push(a));
-    });
-  }));
-  const ph = data[0].phonetic || (data[0].phonetics || []).find(p => p.text)?.text || "";
-  return {
-    word: data[0].word,
-    phonetic: ph,
-    defs,
-    syn,
-    ant
-  };
-}
-async function graphDictionary(word) {
-  try {
-    const p = parseDict(await dictRaw(word));
-    return {
-      word: p.word,
-      meaning: p.defs[0]?.def || "",
-      phonetic: p.phonetic,
-      synonyms: dedupe(word, p.syn).slice(0, 6),
-      antonyms: dedupe(word, p.ant, p.syn).slice(0, 6)
-    };
-  } catch (e) {
-    const o = offlineEntry(word);
-    if (o) return {
-      word,
-      meaning: o.def,
-      phonetic: o.ph,
-      synonyms: o.syn.slice(0, 6),
-      antonyms: o.ant.slice(0, 6),
-      offline: true
-    };
-    throw e;
-  }
-}
-async function detailDictionary(word) {
-  try {
-    const p = parseDict(await dictRaw(word));
-    const examples = p.defs.filter(d => d.example).slice(0, 2).map(d => ({
-      en: d.example,
-      ko: ""
-    }));
-    return {
-      word: p.word,
-      meaning: p.defs[0]?.def || "",
-      phonetic: p.phonetic,
-      examples
-    };
-  } catch (e) {
-    const o = offlineEntry(word);
-    if (o) return {
-      word,
-      meaning: o.def,
-      phonetic: o.ph,
-      examples: [{
-        en: o.ex,
-        ko: ""
-      }],
-      offline: true
-    };
-    throw e;
-  }
-}
+/* 닫기 버튼: 커서를 피해 달아나고, 눌러도 작아지기만 함 */
+var xb=document.getElementById('x'),xN=0;
+xb.addEventListener('mouseenter',function(){
+  var dx=(Math.random()*2-1)*38,dy=(Math.random()*2-1)*22;
+  xb.style.transform='translate('+dx+'px,'+dy+'px) scale('+Math.max(.25,1-xN*.2)+')';});
+xb.addEventListener('click',function(){
+  xN++;xb.style.transform='scale('+Math.max(.25,1-xN*.2)+')';
+  if(xN>=4)xb.style.opacity='.2';});
 
-/* ── 통합 진입점 (캐시 경유) ── */
-async function fetchGraph(word, cfg) {
-  const w = word.trim().toLowerCase();
-  const key = ck(cfg.provider, w);
-  if (graphCache.has(key)) return graphCache.get(key);
-  const data = cfg.provider === "openai" ? await graphOpenAI(w, cfg) : await graphDictionary(w);
-  graphCache.set(key, data);
-  return data;
-}
-async function fetchDetail(word, cfg) {
-  const w = word.trim().toLowerCase();
-  const key = ck(cfg.provider, w);
-  if (detailCache.has(key)) return detailCache.get(key);
-  const data = cfg.provider === "openai" ? await detailOpenAI(w, cfg) : await detailDictionary(w);
-  detailCache.set(key, data);
-  return data;
-}
+/* 체크박스: 해제하면 되돌아옴 */
+['o1','o2','o3'].forEach(function(id){
+  var box=document.getElementById(id),inp=box.querySelector('input');
+  inp.addEventListener('change',function(){
+    if(!inp.checked)setTimeout(function(){
+      inp.checked=true;box.classList.add('shake');
+      setTimeout(function(){box.classList.remove('shake')},320);},380);});
+});
+/* 월간 요금제는 영원히 이용 불가 */
+document.getElementById('p-month').addEventListener('click',function(){
+  var s=this.querySelector('small');s.textContent='월간 결제는 곧 지원될 예정입니다';
+  setTimeout(function(){s.textContent='일시적으로 이용할 수 없습니다'},1800);});
 
-/* ── 내장 오프라인 미니 사전 (dictionary 모드에서 네트워크가 막혔을 때) ──
-   [발음, 품사, 뜻, 예문, 유의어, 반의어] */
-const OFFLINE = {
-  happy: ["/ˈhæpi/", "adjective", "feeling or showing pleasure or contentment", "She looked happy when she heard the news.", ["glad", "joyful", "cheerful", "content", "delighted", "merry"], ["sad", "unhappy", "miserable", "gloomy"]],
-  sad: ["/sæd/", "adjective", "feeling or showing sorrow; unhappy", "He felt sad after saying goodbye.", ["unhappy", "sorrowful", "gloomy", "miserable", "downcast"], ["happy", "cheerful", "joyful"]],
-  big: ["/bɪɡ/", "adjective", "of considerable size or extent", "They live in a big house by the sea.", ["large", "huge", "enormous", "vast", "giant", "immense"], ["small", "tiny", "little"]],
-  small: ["/smɔːl/", "adjective", "of a size that is less than normal", "A small bird landed on the fence.", ["little", "tiny", "minute", "petite", "compact"], ["big", "large", "huge"]],
-  fast: ["/fæst/", "adjective", "moving or capable of moving at high speed", "The fast train reaches Busan in two hours.", ["quick", "rapid", "swift", "speedy", "brisk"], ["slow", "sluggish"]],
-  slow: ["/sloʊ/", "adjective", "moving or operating at a low speed", "Traffic was slow during the storm.", ["sluggish", "unhurried", "leisurely", "gradual"], ["fast", "quick", "rapid"]],
-  hot: ["/hɑːt/", "adjective", "having a high degree of heat", "Be careful — the soup is very hot.", ["warm", "boiling", "scorching", "heated"], ["cold", "cool", "freezing"]],
-  cold: ["/koʊld/", "adjective", "of or at a low temperature", "A cold wind blew across the field.", ["chilly", "freezing", "icy", "cool", "frosty"], ["hot", "warm"]],
-  good: ["/ɡʊd/", "adjective", "of high quality; satisfactory", "She did a good job on the report.", ["fine", "excellent", "great", "superb", "decent"], ["bad", "poor", "awful"]],
-  bad: ["/bæd/", "adjective", "of poor quality or low standard", "The movie got bad reviews.", ["poor", "awful", "terrible", "dreadful", "inferior"], ["good", "excellent"]],
-  strong: ["/strɔːŋ/", "adjective", "having great physical power or force", "You need strong arms to row a boat.", ["powerful", "sturdy", "tough", "robust", "mighty"], ["weak", "feeble"]],
-  weak: ["/wiːk/", "adjective", "lacking physical strength or energy", "He felt weak after the long illness.", ["feeble", "frail", "fragile", "faint"], ["strong", "powerful"]],
-  bright: ["/braɪt/", "adjective", "giving out or reflecting much light", "The room was bright with morning sun.", ["brilliant", "radiant", "vivid", "luminous", "shining"], ["dark", "dim", "dull"]],
-  dark: ["/dɑːrk/", "adjective", "with little or no light", "The path grew dark as night fell.", ["dim", "gloomy", "shadowy", "murky"], ["bright", "light"]],
-  easy: ["/ˈiːzi/", "adjective", "achieved without great effort", "The test was easier than expected.", ["simple", "effortless", "straightforward", "smooth"], ["hard", "difficult"]],
-  hard: ["/hɑːrd/", "adjective", "requiring a great deal of effort; solid and firm", "Learning a language is hard but rewarding.", ["difficult", "tough", "demanding", "arduous", "firm"], ["easy", "soft", "simple"]],
-  beautiful: ["/ˈbjuːtɪfl/", "adjective", "pleasing the senses or mind aesthetically", "We watched a beautiful sunset.", ["lovely", "gorgeous", "pretty", "stunning", "elegant"], ["ugly", "plain"]],
-  brave: ["/breɪv/", "adjective", "ready to face danger or pain; showing courage", "The brave firefighter entered the burning house.", ["courageous", "bold", "fearless", "valiant", "daring"], ["cowardly", "timid"]],
-  calm: ["/kɑːm/", "adjective", "not showing or feeling nervousness or anger", "She stayed calm during the interview.", ["peaceful", "serene", "tranquil", "composed", "quiet"], ["agitated", "anxious", "stormy"]],
-  angry: ["/ˈæŋɡri/", "adjective", "feeling or showing strong annoyance", "He was angry about the broken promise.", ["furious", "irate", "annoyed", "enraged", "cross"], ["calm", "pleased"]],
-  rich: ["/rɪtʃ/", "adjective", "having a great deal of money or assets", "The city grew rich from trade.", ["wealthy", "affluent", "prosperous", "opulent"], ["poor", "broke"]],
-  poor: ["/pʊr/", "adjective", "lacking sufficient money; of low quality", "They were too poor to travel.", ["needy", "impoverished", "destitute", "broke"], ["rich", "wealthy"]],
-  old: ["/oʊld/", "adjective", "having lived or existed for a long time", "An old clock hung on the wall.", ["ancient", "aged", "elderly", "antique"], ["new", "young", "modern"]],
-  new: ["/nuː/", "adjective", "produced or discovered recently", "She bought a new phone yesterday.", ["fresh", "modern", "novel", "recent", "current"], ["old", "ancient"]],
-  quiet: ["/ˈkwaɪət/", "adjective", "making little or no noise", "The library was quiet in the morning.", ["silent", "hushed", "still", "peaceful", "calm"], ["loud", "noisy"]],
-  loud: ["/laʊd/", "adjective", "producing much noise", "The music was too loud to talk over.", ["noisy", "deafening", "booming", "thunderous"], ["quiet", "soft"]],
-  smart: ["/smɑːrt/", "adjective", "having quick intelligence", "She's smart enough to solve it alone.", ["clever", "intelligent", "bright", "sharp", "brilliant"], ["stupid", "foolish", "dull"]],
-  vivid: ["/ˈvɪvɪd/", "adjective", "producing powerful, clear images in the mind", "He gave a vivid description of the festival.", ["bright", "brilliant", "colorful", "striking", "graphic"], ["dull", "faded", "vague"]],
-  begin: ["/bɪˈɡɪn/", "verb", "to start; to perform the first part of an action", "The concert will begin at eight.", ["start", "commence", "initiate", "launch"], ["end", "finish", "stop"]],
-  end: ["/end/", "verb", "to come or bring to a final point", "The story ends with a surprise.", ["finish", "conclude", "terminate", "close"], ["begin", "start"]],
-  love: ["/lʌv/", "verb", "to feel deep affection for someone or something", "They love hiking in autumn.", ["adore", "cherish", "treasure", "admire"], ["hate", "despise"]],
-  hate: ["/heɪt/", "verb", "to feel intense dislike for", "I hate waiting in long lines.", ["despise", "loathe", "detest", "abhor"], ["love", "adore"]]
-};
-function offlineEntry(word) {
-  const e = OFFLINE[word];
-  if (!e) return null;
-  const [ph, pos, def, ex, syn, ant] = e;
-  return {
-    ph,
-    pos,
-    def,
-    ex,
-    syn: dedupe(word, syn),
-    ant: dedupe(word, ant, syn)
-  };
-}
+/* 거절: 누를수록 조건이 나빠짐 */
+var dN=0,dec=document.getElementById('decline');
+var steps=[
+  {txt:'정말 나가시겠어요?',price:'₩5,900',badge:'47%',kick:'특별히 한 번 더 깎아 드립니다',sub:'₩70,800 즉시 청구 · 오늘만'},
+  {txt:'마지막 제안입니다',price:'₩4,690',badge:'58%',kick:'이 가격은 다시 나오지 않습니다',sub:'₩56,280 즉시 청구 · 재고 소진 임박'},
+  {txt:'이 버튼은 작동하지 않습니다',price:'₩8,900',badge:'21%',kick:'할인 기회가 만료되었습니다',sub:'₩106,800 즉시 청구 · 할인 종료'}
+];
+dec.addEventListener('click',function(){
+  if(dN>=steps.length){dec.style.color='#E2E7EB';return;}
+  var s=steps[dN++];
+  dec.textContent=s.txt;
+  document.getElementById('now').textContent=s.price;
+  document.getElementById('badge').textContent=s.badge;
+  document.getElementById('kicker').textContent=s.kick;
+  document.getElementById('year-sub').textContent=s.sub;
+});
 
-/* ───────────── 그래프 뷰 ───────────── */
-function GraphView({
-  data,
-  filter,
-  onNodeTap
-}) {
-  const wrapRef = useRef(null);
-  const nodeEls = useRef(new Map());
-  const linkEls = useRef([]);
-  const simRef = useRef(null);
-  const nodesRef = useRef([]);
-  const dragRef = useRef(null);
-  const nodes = React.useMemo(() => {
-    const cw = 34 + data.word.length * 11;
-    return [{
-      id: data.word,
-      kind: "center",
-      w: cw,
-      r: cw / 2 + 8
-    }, ...data.synonyms.map(s => {
-      const w = 26 + s.length * 8.2;
-      return {
-        id: s,
-        kind: "syn",
-        w,
-        r: w / 2 + 7
-      };
-    }), ...data.antonyms.map(a => {
-      const w = 26 + a.length * 8.2;
-      return {
-        id: a,
-        kind: "ant",
-        w,
-        r: w / 2 + 7
-      };
-    })];
-  }, [data]);
-  const links = React.useMemo(() => nodes.filter(n => n.kind !== "center").map(n => ({
-    source: data.word,
-    target: n.id,
-    kind: n.kind
-  })), [nodes, data.word]);
-  useEffect(() => {
-    const el = wrapRef.current;
-    if (!el) return;
-    const W = el.clientWidth,
-      H = el.clientHeight;
-    nodes.forEach((n, i) => {
-      if (n.kind === "center") {
-        n.x = W / 2;
-        n.y = H / 2;
-      } else {
-        const a = i / nodes.length * Math.PI * 2;
-        n.x = W / 2 + Math.cos(a) * 120;
-        n.y = H / 2 + Math.sin(a) * 120;
-      }
-    });
-    nodesRef.current = nodes;
-    const sim = d3.forceSimulation(nodes).force("link", d3.forceLink(links).id(d => d.id).distance(l => l.kind === "syn" ? 105 : 150).strength(0.5)).force("charge", d3.forceManyBody().strength(-220)).force("collide", d3.forceCollide(d => d.r).iterations(2)).force("x", d3.forceX(W / 2).strength(d => d.kind === "center" ? 0.22 : 0.03)).force("y", d3.forceY(H / 2).strength(d => d.kind === "center" ? 0.22 : 0.035)).velocityDecay(0.32).alpha(1);
-    sim.on("tick", () => {
-      const w = el.clientWidth,
-        h = el.clientHeight;
-      nodes.forEach(n => {
-        n.x = Math.max(n.r, Math.min(w - n.r, n.x));
-        n.y = Math.max(n.r + 4, Math.min(h - n.r, n.y));
-        const dom = nodeEls.current.get(n.id);
-        if (dom) dom.style.transform = `translate(${n.x}px,${n.y}px) translate(-50%,-50%)`;
-      });
-      links.forEach((l, i) => {
-        const dom = linkEls.current[i];
-        if (dom) {
-          dom.setAttribute("x1", l.source.x);
-          dom.setAttribute("y1", l.source.y);
-          dom.setAttribute("x2", l.target.x);
-          dom.setAttribute("y2", l.target.y);
-        }
-      });
-    });
-    simRef.current = sim;
-    return () => sim.stop();
-  }, [nodes, links]);
-  const onDown = useCallback((e, id) => {
-    const n = nodesRef.current.find(d => d.id === id);
-    if (!n) return;
-    e.currentTarget.setPointerCapture(e.pointerId);
-    dragRef.current = {
-      n,
-      sx: e.clientX,
-      sy: e.clientY,
-      lx: e.clientX,
-      ly: e.clientY,
-      vx: 0,
-      vy: 0,
-      t: performance.now(),
-      moved: false
-    };
-    n.fx = n.x;
-    n.fy = n.y;
-    simRef.current?.alphaTarget(0.28).restart();
-  }, []);
-  const onMove = useCallback(e => {
-    const d = dragRef.current;
-    if (!d) return;
-    const now = performance.now();
-    const dx = e.clientX - d.lx,
-      dy = e.clientY - d.ly;
-    const dt = Math.max(now - d.t, 1);
-    d.vx = dx / dt * 16;
-    d.vy = dy / dt * 16;
-    d.lx = e.clientX;
-    d.ly = e.clientY;
-    d.t = now;
-    d.n.fx += dx;
-    d.n.fy += dy;
-    if (Math.hypot(e.clientX - d.sx, e.clientY - d.sy) > 6) d.moved = true;
-  }, []);
-  const onUp = useCallback((e, id) => {
-    const d = dragRef.current;
-    if (!d) return;
-    dragRef.current = null;
-    simRef.current?.alphaTarget(0);
-    const clamp = v => Math.max(-14, Math.min(14, v));
-    d.n.vx = clamp(d.vx * 1.4); // 살짝 관성
-    d.n.vy = clamp(d.vy * 1.4);
-    d.n.fx = null;
-    d.n.fy = null;
-    if (!d.moved) onNodeTap(id, d.n.kind);else simRef.current?.alpha(0.4).restart();
-  }, [onNodeTap]);
-  const dimmed = kind => filter === "all" || kind === "center" || kind === filter ? 1 : 0.16;
-  return /*#__PURE__*/React.createElement("div", {
-    ref: wrapRef,
-    style: {
-      position: "absolute",
-      inset: 0,
-      touchAction: "none"
-    }
-  }, /*#__PURE__*/React.createElement("svg", {
-    style: {
-      position: "absolute",
-      inset: 0,
-      width: "100%",
-      height: "100%"
-    }
-  }, links.map((l, i) => /*#__PURE__*/React.createElement("line", {
-    key: i,
-    ref: el => linkEls.current[i] = el,
-    stroke: l.kind === "syn" ? C.syn : C.ant,
-    strokeWidth: l.kind === "syn" ? 1.4 : 1.3,
-    strokeDasharray: l.kind === "ant" ? "5 6" : "none",
-    strokeLinecap: "round",
-    style: {
-      opacity: 0.5 * dimmed(l.kind),
-      transition: "opacity .45s ease"
-    }
-  }))), nodes.map(n => {
-    const center = n.kind === "center";
-    return /*#__PURE__*/React.createElement("div", {
-      key: n.id,
-      ref: el => {
-        el ? nodeEls.current.set(n.id, el) : nodeEls.current.delete(n.id);
-      },
-      onPointerDown: e => onDown(e, n.id),
-      onPointerMove: onMove,
-      onPointerUp: e => onUp(e, n.id),
-      style: {
-        position: "absolute",
-        left: 0,
-        top: 0,
-        padding: center ? "12px 22px" : "8px 15px",
-        borderRadius: 999,
-        background: center ? "rgba(119,50,58,.82)" : "rgba(255,255,255,.42)",
-        backdropFilter: "blur(10px) saturate(1.5)",
-        WebkitBackdropFilter: "blur(10px) saturate(1.5)",
-        color: center ? "#FDFAF3" : n.kind === "syn" ? C.syn : C.ant,
-        fontFamily: SERIF,
-        fontSize: center ? 21 : 15.5,
-        fontWeight: center ? 600 : 500,
-        letterSpacing: "0.01em",
-        whiteSpace: "nowrap",
-        cursor: "grab",
-        userSelect: "none",
-        border: center ? "1px solid rgba(255,255,255,.35)" : "1px solid rgba(255,255,255,.75)",
-        boxShadow: center ? "0 14px 30px -8px rgba(119,50,58,.42), inset 0 1px 0 rgba(255,255,255,.25)" : "0 10px 24px -8px rgba(44,44,44,.18), inset 0 1px 0 rgba(255,255,255,.6)",
-        opacity: dimmed(n.kind),
-        transition: "opacity .45s ease, box-shadow .3s ease"
-      }
-    }, n.id);
-  }));
-}
-
-/* ───────────── 작은 공용 컴포넌트 ───────────── */
-function Pill({
-  active,
-  onClick,
-  children,
-  color = C.syn
-}) {
-  return /*#__PURE__*/React.createElement("button", {
-    onClick: onClick,
-    style: {
-      ...(!active ? glass(0.4, 12) : {}),
-      ...(active ? {
-        background: color,
-        border: "1px solid rgba(255,255,255,.35)"
-      } : {}),
-      color: active ? "#FDFAF3" : C.faint,
-      borderRadius: 999,
-      padding: "7px 14px",
-      fontFamily: SERIF,
-      fontSize: 13.5,
-      fontWeight: 600,
-      transition: "all .35s cubic-bezier(.22,.9,.3,1)",
-      boxShadow: active ? "0 6px 16px -6px rgba(44,44,44,.35)" : "0 4px 12px -6px rgba(44,44,44,.15)",
-      cursor: "pointer"
-    }
-  }, children);
-}
-function Modal({
-  children,
-  onClose
-}) {
-  return /*#__PURE__*/React.createElement("div", {
-    onClick: onClose,
-    style: {
-      position: "fixed",
-      inset: 0,
-      zIndex: 60,
-      background: "rgba(60,52,40,.28)",
-      backdropFilter: "blur(6px)",
-      WebkitBackdropFilter: "blur(6px)",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      animation: "lg-fade .3s ease"
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    onClick: e => e.stopPropagation(),
-    style: {
-      ...glass(0.68, 24),
-      borderRadius: 22,
-      padding: 24,
-      width: "min(320px, 84vw)",
-      boxShadow: "0 30px 60px -20px rgba(44,44,44,.4), inset 0 1px 0 rgba(255,255,255,.8)",
-      animation: "lg-pop .45s cubic-bezier(.34,1.4,.5,1)"
-    }
-  }, children));
-}
-
-/* ───────────── 하단 슬라이드업 시트 (단어 상세) ───────────── */
-function WordSheet({
-  word,
-  config,
-  knownSynonyms,
-  books,
-  onClose,
-  onExplore,
-  onAdd,
-  onCreateBookAdd
-}) {
-  const [detail, setDetail] = useState(null);
-  const [err, setErr] = useState(null);
-  const [picking, setPicking] = useState(false);
-  const [newName, setNewName] = useState("");
-  const [added, setAdded] = useState(null);
-  const [open, setOpen] = useState(false);
-  useEffect(() => {
-    setOpen(false);
-    requestAnimationFrame(() => requestAnimationFrame(() => setOpen(true)));
-    setDetail(null);
-    setErr(null);
-    setPicking(false);
-    setAdded(null);
-    let live = true;
-    fetchDetail(word, config).then(d => live && setDetail(d)).catch(e => live && setErr(e.message === "apikey" ? "apikey" : "notfound"));
-    return () => {
-      live = false;
-    };
-  }, [word]);
-  const close = () => {
-    setOpen(false);
-    setTimeout(onClose, 420);
-  };
-
-  // 단어장에 뜻·예문·유의어를 함께 저장 → 재요청 불필요
-  const entry = detail && {
-    word: detail.word || word,
-    phonetic: detail.phonetic || "",
-    meaning: detail.meaning || "",
-    examples: (detail.examples || []).slice(0, 2),
-    synonyms: (knownSynonyms || []).slice(0, 8),
-    addedAt: Date.now()
-  };
-  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
-    onClick: close,
-    style: {
-      position: "fixed",
-      inset: 0,
-      zIndex: 40,
-      background: open ? "rgba(60,52,40,.2)" : "transparent",
-      transition: "background .4s ease"
-    }
-  }), /*#__PURE__*/React.createElement("div", {
-    style: {
-      ...glass(0.62, 26),
-      position: "fixed",
-      left: 0,
-      right: 0,
-      bottom: 0,
-      zIndex: 50,
-      borderRadius: "26px 26px 0 0",
-      borderBottom: "none",
-      boxShadow: "0 -18px 50px -12px rgba(44,44,44,.28), inset 0 1px 0 rgba(255,255,255,.85)",
-      maxHeight: "72vh",
-      overflowY: "auto",
-      padding: "14px 24px calc(24px + env(safe-area-inset-bottom))",
-      transform: open ? "translateY(0)" : "translateY(105%)",
-      transition: "transform .5s cubic-bezier(.22,1.1,.3,1)"
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      width: 40,
-      height: 4,
-      borderRadius: 4,
-      background: "rgba(140,130,110,.35)",
-      margin: "0 auto 16px"
-    }
-  }), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      alignItems: "baseline",
-      gap: 10
-    }
-  }, /*#__PURE__*/React.createElement("h2", {
-    style: {
-      fontFamily: SERIF,
-      fontSize: 28,
-      fontWeight: 700,
-      color: C.ink,
-      margin: 0
-    }
-  }, word), detail?.phonetic && /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontFamily: SERIF,
-      color: C.faint,
-      fontSize: 14
-    }
-  }, detail.phonetic)), !detail && !err && /*#__PURE__*/React.createElement("p", {
-    style: {
-      fontFamily: SERIF,
-      color: C.faint,
-      marginTop: 18,
-      fontSize: 14
-    }
-  }, "뜻과 예문을 불러오는 중…"), err === "apikey" && /*#__PURE__*/React.createElement("p", {
-    style: {
-      fontFamily: SERIF,
-      color: C.faint,
-      marginTop: 18,
-      lineHeight: 1.6,
-      fontSize: 14
-    }
-  }, "OpenAI API 키가 필요해요. 하단 ‘설정’에서 키를 입력해 주세요."), err === "notfound" && /*#__PURE__*/React.createElement("p", {
-    style: {
-      fontFamily: SERIF,
-      color: C.faint,
-      marginTop: 18,
-      lineHeight: 1.6,
-      fontSize: 14
-    }
-  }, "이 단어의 뜻을 불러오지 못했어요. 잠시 후 다시 시도해 주세요."), detail && /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginTop: 14
-    }
-  }, detail.meaning && /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontFamily: SERIF,
-      fontSize: 18,
-      color: C.ink,
-      lineHeight: 1.5,
-      marginBottom: 4
-    }
-  }, detail.meaning), detail.examples && detail.examples.map((ex, i) => /*#__PURE__*/React.createElement("div", {
-    key: i,
-    style: {
-      padding: "12px 0",
-      borderTop: `1px solid ${C.hairline}`
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontFamily: SERIF,
-      fontSize: 15,
-      color: C.ink,
-      lineHeight: 1.55,
-      fontStyle: "italic"
-    }
-  }, "“", ex.en, "”"), ex.ko && /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontFamily: SERIF,
-      fontSize: 13.5,
-      color: C.faint,
-      marginTop: 5,
-      paddingLeft: 12,
-      borderLeft: `2px solid ${C.hairline}`
-    }
-  }, ex.ko))), !picking && !added && /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      gap: 10,
-      marginTop: 18
-    }
-  }, /*#__PURE__*/React.createElement("button", {
-    onClick: () => setPicking(true),
-    style: {
-      flex: 1,
-      background: "rgba(119,50,58,.88)",
-      backdropFilter: "blur(8px)",
-      color: "#FDFAF3",
-      border: "1px solid rgba(255,255,255,.3)",
-      borderRadius: 14,
-      padding: "14px 0",
-      fontFamily: SERIF,
-      fontSize: 15.5,
-      fontWeight: 600,
-      boxShadow: "0 10px 22px -8px rgba(119,50,58,.5)",
-      cursor: "pointer"
-    }
-  }, "단어장에 추가하기"), /*#__PURE__*/React.createElement("button", {
-    onClick: () => {
-      close();
-      onExplore(word);
-    },
-    style: {
-      ...glass(0.35, 10),
-      color: C.ant,
-      borderRadius: 14,
-      padding: "14px 16px",
-      fontFamily: SERIF,
-      fontSize: 14.5,
-      fontWeight: 600,
-      cursor: "pointer"
-    }
-  }, "이 단어로 탐색")), picking && !added && /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginTop: 16,
-      animation: "lg-fade .35s ease"
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontFamily: SERIF,
-      fontSize: 13.5,
-      color: C.faint,
-      marginBottom: 10
-    }
-  }, "어느 단어장에 담을까요?"), books.map(b => /*#__PURE__*/React.createElement("button", {
-    key: b.id,
-    onClick: () => {
-      onAdd(b.id, entry);
-      setAdded(b.title);
-    },
-    style: {
-      ...glass(0.42, 10),
-      display: "flex",
-      justifyContent: "space-between",
-      width: "100%",
-      borderRadius: 12,
-      padding: "12px 14px",
-      marginBottom: 8,
-      fontFamily: SERIF,
-      fontSize: 15,
-      color: C.ink,
-      cursor: "pointer"
-    }
-  }, /*#__PURE__*/React.createElement("span", null, b.title), /*#__PURE__*/React.createElement("span", {
-    style: {
-      color: C.faint,
-      fontSize: 13
-    }
-  }, b.words.length, "단어"))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      gap: 8,
-      marginTop: 4
-    }
-  }, /*#__PURE__*/React.createElement("input", {
-    value: newName,
-    onChange: e => setNewName(e.target.value),
-    placeholder: "새 단어장 이름",
-    style: {
-      ...glass(0.5, 10),
-      flex: 1,
-      borderRadius: 12,
-      padding: "11px 13px",
-      fontFamily: SERIF,
-      fontSize: 14.5,
-      color: C.ink,
-      outline: "none"
-    }
-  }), /*#__PURE__*/React.createElement("button", {
-    onClick: () => {
-      if (!newName.trim()) return;
-      onCreateBookAdd(newName.trim(), entry);
-      setAdded(newName.trim());
-    },
-    style: {
-      background: "rgba(44,44,44,.85)",
-      backdropFilter: "blur(8px)",
-      color: "#FDFAF3",
-      border: "1px solid rgba(255,255,255,.25)",
-      borderRadius: 12,
-      padding: "0 16px",
-      fontFamily: SERIF,
-      fontSize: 14,
-      cursor: "pointer"
-    }
-  }, "만들고 담기"))), added && /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginTop: 18,
-      textAlign: "center",
-      fontFamily: SERIF,
-      fontSize: 15,
-      color: C.syn,
-      animation: "lg-pop .5s cubic-bezier(.34,1.5,.5,1)"
-    }
-  }, "❦ 『", added, "』에 담았어요"))));
-}
-
-/* ───────────── 탐색(그래프) 화면 ───────────── */
-function ExploreView({
-  config,
-  books,
-  addWord,
-  createBookAdd,
-  onOpenSettings
-}) {
-  const [query, setQuery] = useState("");
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [needKey, setNeedKey] = useState(false);
-  const [filter, setFilter] = useState("all");
-  const [sheetWord, setSheetWord] = useState(null);
-  const search = async w => {
-    const word = (w ?? query).trim();
-    if (!word) return;
-    setLoading(true);
-    setError(null);
-    setNeedKey(false);
-    setSheetWord(null);
-    try {
-      const d = await fetchGraph(word, config);
-      setData(d);
-      if (d.offline) setError("네트워크가 제한된 환경이라 내장 미니 사전으로 보여드리고 있어요.");else if (!d.synonyms.length && !d.antonyms.length) setError("연결된 유의어·반의어가 없는 단어예요. 뜻만 볼 수 있어요.");
-      setQuery(word);
-    } catch (e) {
-      if (e.message === "apikey") {
-        setNeedKey(true);
-        setError("OpenAI API 키가 필요해요. ‘설정’에서 키를 입력해 주세요.");
-      } else if (e.message === "not-found") {
-        setError("사전에서 찾지 못한 단어예요. 철자를 확인해 주세요.");
-      } else {
-        setError("요청이 실패했어요. 네트워크나 API 키를 확인해 주세요.");
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-  return /*#__PURE__*/React.createElement("div", {
-    style: {
-      position: "absolute",
-      inset: 0,
-      display: "flex",
-      flexDirection: "column"
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      padding: "18px 20px 10px",
-      zIndex: 10
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontFamily: SERIF,
-      fontSize: 12,
-      letterSpacing: "0.18em",
-      color: C.faint,
-      textTransform: "uppercase",
-      marginBottom: 8
-    }
-  }, "Lexigraph · 낱말의 별자리"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      gap: 8
-    }
-  }, /*#__PURE__*/React.createElement("input", {
-    value: query,
-    onChange: e => setQuery(e.target.value),
-    onKeyDown: e => e.key === "Enter" && search(),
-    placeholder: "영단어 검색",
-    style: {
-      ...glass(0.5, 16),
-      flex: 1,
-      borderRadius: 16,
-      padding: "13px 16px",
-      fontFamily: SERIF,
-      fontSize: 16,
-      color: C.ink,
-      outline: "none",
-      boxShadow: "0 10px 28px -14px rgba(44,44,44,.28), inset 0 1px 0 rgba(255,255,255,.8)"
-    }
-  }), /*#__PURE__*/React.createElement("button", {
-    onClick: () => search(),
-    style: {
-      background: "rgba(44,44,44,.85)",
-      backdropFilter: "blur(10px)",
-      WebkitBackdropFilter: "blur(10px)",
-      color: "#FDFAF3",
-      border: "1px solid rgba(255,255,255,.25)",
-      borderRadius: 16,
-      padding: "0 18px",
-      fontFamily: SERIF,
-      fontSize: 15,
-      fontWeight: 600,
-      cursor: "pointer",
-      boxShadow: "0 10px 22px -10px rgba(44,44,44,.5)"
-    }
-  }, "찾기")), data && /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      gap: 8,
-      marginTop: 12
-    }
-  }, /*#__PURE__*/React.createElement(Pill, {
-    active: filter === "all",
-    onClick: () => setFilter("all"),
-    color: "rgba(44,44,44,.85)"
-  }, "둘 다 보기"), /*#__PURE__*/React.createElement(Pill, {
-    active: filter === "syn",
-    onClick: () => setFilter("syn"),
-    color: "rgba(119,50,58,.85)"
-  }, "유의어만"), /*#__PURE__*/React.createElement(Pill, {
-    active: filter === "ant",
-    onClick: () => setFilter("ant"),
-    color: "rgba(62,90,126,.85)"
-  }, "반의어만"))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      position: "relative",
-      flex: 1,
-      overflow: "hidden"
-    }
-  }, loading && /*#__PURE__*/React.createElement("div", {
-    style: {
-      position: "absolute",
-      inset: 0,
-      display: "grid",
-      placeItems: "center",
-      fontFamily: SERIF,
-      color: C.faint,
-      fontSize: 14
-    }
-  }, "낱말의 지도를 그리는 중…"), !loading && !data && /*#__PURE__*/React.createElement("div", {
-    style: {
-      position: "absolute",
-      inset: 0,
-      display: "grid",
-      placeItems: "center",
-      padding: 32,
-      textAlign: "center"
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      ...glass(0.35, 14),
-      borderRadius: 24,
-      padding: "28px 26px",
-      boxShadow: "0 18px 40px -18px rgba(44,44,44,.25)"
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontFamily: SERIF,
-      fontSize: 36,
-      color: "rgba(140,130,110,.5)",
-      marginBottom: 8
-    }
-  }, "❧"), /*#__PURE__*/React.createElement("p", {
-    style: {
-      fontFamily: SERIF,
-      fontSize: 13.5,
-      color: C.faint,
-      lineHeight: 1.7,
-      margin: 0
-    }
-  }, "단어 하나를 심으면", /*#__PURE__*/React.createElement("br", null), "유의어는 실선으로, 반의어는 점선으로", /*#__PURE__*/React.createElement("br", null), "주위에 피어납니다."), config.provider === "openai" && !config.openaiKey && /*#__PURE__*/React.createElement("button", {
-    onClick: onOpenSettings,
-    style: {
-      marginTop: 16,
-      background: "rgba(119,50,58,.9)",
-      color: "#FDFAF3",
-      border: "none",
-      borderRadius: 11,
-      padding: "10px 16px",
-      fontFamily: SERIF,
-      fontSize: 13.5,
-      fontWeight: 600,
-      cursor: "pointer"
-    }
-  }, "먼저 API 키 입력하기"))), !loading && data && /*#__PURE__*/React.createElement(GraphView, {
-    key: data.word,
-    data: data,
-    filter: filter,
-    onNodeTap: id => setSheetWord(id)
-  }), error && /*#__PURE__*/React.createElement("div", {
-    style: {
-      ...glass(0.6, 18),
-      position: "absolute",
-      left: 20,
-      right: 20,
-      bottom: 16,
-      borderRadius: 14,
-      padding: "12px 16px",
-      fontFamily: SERIF,
-      fontSize: 13.5,
-      color: C.faint,
-      boxShadow: "0 12px 28px -12px rgba(44,44,44,.25)",
-      animation: "lg-pop .4s cubic-bezier(.34,1.3,.5,1)",
-      display: "flex",
-      alignItems: "center",
-      gap: 10
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    style: {
-      flex: 1
-    }
-  }, error), needKey && /*#__PURE__*/React.createElement("button", {
-    onClick: onOpenSettings,
-    style: {
-      background: "rgba(119,50,58,.9)",
-      color: "#FDFAF3",
-      border: "none",
-      borderRadius: 10,
-      padding: "8px 12px",
-      fontFamily: SERIF,
-      fontSize: 13,
-      fontWeight: 600,
-      whiteSpace: "nowrap",
-      cursor: "pointer"
-    }
-  }, "설정 열기"))), sheetWord && /*#__PURE__*/React.createElement(WordSheet, {
-    word: sheetWord,
-    config: config,
-    knownSynonyms: data && sheetWord === data.word ? data.synonyms : [],
-    books: books,
-    onClose: () => setSheetWord(null),
-    onExplore: w => search(w),
-    onAdd: addWord,
-    onCreateBookAdd: createBookAdd
-  }));
-}
-
-/* ───────────── 단어장 뭉치(스택) 카드 ───────────── */
-function BookStack({
-  book,
-  expanded,
-  onSelect
-}) {
-  const peek1 = book.words[1]?.word;
-  const peek2 = book.words[2]?.word;
-  const layer = (rot, spread, z, alpha) => ({
-    ...glass(alpha, 14),
-    position: "absolute",
-    inset: 0,
-    borderRadius: 18,
-    zIndex: z,
-    boxShadow: "0 12px 26px -12px rgba(44,44,44,.22), inset 0 1px 0 rgba(255,255,255,.7)",
-    transform: expanded ? `rotate(${rot * 2.2}deg) translateX(${spread}px) translateY(${Math.abs(spread) * -0.12}px)` : `rotate(${rot}deg)`,
-    transition: "transform .6s cubic-bezier(.34,1.35,.4,1)"
-  });
-  return /*#__PURE__*/React.createElement("button", {
-    onClick: onSelect,
-    style: {
-      position: "relative",
-      aspectRatio: "5/4",
-      minHeight: 124,
-      border: "none",
-      background: "transparent",
-      cursor: "pointer",
-      padding: 0
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: layer(5, 26, 1, 0.28)
-  }, peek2 && /*#__PURE__*/React.createElement("div", {
-    style: {
-      position: "absolute",
-      top: 7,
-      right: 14,
-      fontFamily: SERIF,
-      fontSize: 12,
-      fontStyle: "italic",
-      color: C.faint
-    }
-  }, peek2)), /*#__PURE__*/React.createElement("div", {
-    style: layer(-4, -26, 2, 0.38)
-  }, peek1 && /*#__PURE__*/React.createElement("div", {
-    style: {
-      position: "absolute",
-      top: 7,
-      left: 14,
-      fontFamily: SERIF,
-      fontSize: 12,
-      fontStyle: "italic",
-      color: C.faint
-    }
-  }, peek1)), /*#__PURE__*/React.createElement("div", {
-    style: {
-      ...layer(0, 0, 3, 0.55),
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      justifyContent: "center",
-      gap: 6,
-      boxShadow: expanded ? "0 20px 40px -14px rgba(119,50,58,.35), inset 0 1px 0 rgba(255,255,255,.85)" : "0 14px 30px -12px rgba(44,44,44,.25), inset 0 1px 0 rgba(255,255,255,.85)",
-      border: expanded ? "1.5px solid rgba(119,50,58,.55)" : "1px solid rgba(255,255,255,.75)"
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontFamily: SERIF,
-      fontSize: 18,
-      fontWeight: 700,
-      color: C.ink,
-      padding: "0 10px",
-      textAlign: "center",
-      lineHeight: 1.25
-    }
-  }, book.title), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontFamily: SERIF,
-      fontSize: 12.5,
-      color: C.syn
-    }
-  }, book.words.length, "개의 낱말")));
-}
-
-/* ───────────── 단어장 목록 화면 ───────────── */
-function BooksView({
-  books,
-  setBooks,
-  onFlashcards
-}) {
-  const [selected, setSelected] = useState(null);
-  const [listOpen, setListOpen] = useState(false);
-  const [renaming, setRenaming] = useState(false);
-  const [confirmDel, setConfirmDel] = useState(false);
-  const [creating, setCreating] = useState(false);
-  const [name, setName] = useState("");
-  const sel = books.find(b => b.id === selected);
-  const mutate = fn => setBooks(prev => {
-    const next = fn(prev);
-    saveBooks(next);
-    return next;
-  });
-  return /*#__PURE__*/React.createElement("div", {
-    style: {
-      position: "absolute",
-      inset: 0,
-      overflowY: "auto",
-      padding: "18px 20px 140px"
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontFamily: SERIF,
-      fontSize: 12,
-      letterSpacing: "0.18em",
-      color: C.faint,
-      textTransform: "uppercase",
-      marginBottom: 4
-    }
-  }, "Bookshelf"), /*#__PURE__*/React.createElement("h1", {
-    style: {
-      fontFamily: SERIF,
-      fontSize: 27,
-      fontWeight: 700,
-      color: C.ink,
-      margin: "0 0 20px"
-    }
-  }, "나의 단어장"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "grid",
-      gridTemplateColumns: "1fr 1fr",
-      gap: "26px 20px"
-    }
-  }, books.map(b => /*#__PURE__*/React.createElement(BookStack, {
-    key: b.id,
-    book: b,
-    expanded: selected === b.id,
-    onSelect: () => setSelected(selected === b.id ? null : b.id)
-  })), /*#__PURE__*/React.createElement("button", {
-    onClick: () => {
-      setCreating(true);
-      setName("");
-    },
-    style: {
-      ...glass(0.25, 10),
-      aspectRatio: "5/4",
-      minHeight: 124,
-      borderRadius: 18,
-      border: "1.5px dashed rgba(140,130,110,.4)",
-      fontFamily: SERIF,
-      fontSize: 14.5,
-      color: C.faint,
-      cursor: "pointer"
-    }
-  }, "＋ 새 단어장")), books.length === 0 && /*#__PURE__*/React.createElement("p", {
-    style: {
-      fontFamily: SERIF,
-      color: C.faint,
-      fontSize: 13.5,
-      lineHeight: 1.7,
-      marginTop: 26
-    }
-  }, "아직 단어장이 비어 있어요. 탐색 탭에서 단어를 검색하고, 마음에 드는 낱말을 담아 보세요."), /*#__PURE__*/React.createElement("div", {
-    style: {
-      ...glass(0.6, 22),
-      position: "fixed",
-      left: 16,
-      right: 16,
-      bottom: "calc(84px + env(safe-area-inset-bottom))",
-      zIndex: 30,
-      borderRadius: 20,
-      boxShadow: "0 20px 44px -16px rgba(44,44,44,.35), inset 0 1px 0 rgba(255,255,255,.85)",
-      padding: 10,
-      display: "flex",
-      gap: 8,
-      transform: sel ? "translateY(0)" : "translateY(140%)",
-      opacity: sel ? 1 : 0,
-      transition: "transform .55s cubic-bezier(.3,1.25,.4,1), opacity .4s ease",
-      pointerEvents: sel ? "auto" : "none"
-    }
-  }, [{
-    label: "단어장 보기",
-    fn: () => setListOpen(true),
-    primary: true
-  }, {
-    label: "암기 카드",
-    fn: () => sel.words.length && onFlashcards(sel)
-  }, {
-    label: "이름 변경",
-    fn: () => {
-      setName(sel.title);
-      setRenaming(true);
-    }
-  }, {
-    label: "삭제",
-    fn: () => setConfirmDel(true),
-    danger: true
-  }].map(a => /*#__PURE__*/React.createElement("button", {
-    key: a.label,
-    onClick: a.fn,
-    style: {
-      flex: 1,
-      borderRadius: 13,
-      padding: "12px 0",
-      fontFamily: SERIF,
-      fontSize: 13,
-      fontWeight: 600,
-      cursor: "pointer",
-      background: a.primary ? "rgba(119,50,58,.88)" : "transparent",
-      border: a.primary ? "1px solid rgba(255,255,255,.3)" : "none",
-      color: a.primary ? "#FDFAF3" : a.danger ? C.syn : C.ink
-    }
-  }, a.label))), listOpen && sel && /*#__PURE__*/React.createElement("div", {
-    style: {
-      position: "fixed",
-      inset: 0,
-      zIndex: 55,
-      background: "rgba(246,242,233,.82)",
-      backdropFilter: "blur(22px) saturate(1.4)",
-      WebkitBackdropFilter: "blur(22px) saturate(1.4)",
-      animation: "lg-slideup .5s cubic-bezier(.22,1,.3,1)",
-      overflowY: "auto",
-      padding: "18px 22px 40px"
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "center",
-      marginBottom: 18
-    }
-  }, /*#__PURE__*/React.createElement("h2", {
-    style: {
-      fontFamily: SERIF,
-      fontSize: 22,
-      fontWeight: 700,
-      color: C.ink,
-      margin: 0
-    }
-  }, sel.title), /*#__PURE__*/React.createElement("button", {
-    onClick: () => setListOpen(false),
-    style: {
-      border: "none",
-      background: "transparent",
-      fontFamily: SERIF,
-      fontSize: 24,
-      color: C.faint,
-      cursor: "pointer"
-    }
-  }, "✕")), sel.words.length === 0 && /*#__PURE__*/React.createElement("p", {
-    style: {
-      fontFamily: SERIF,
-      color: C.faint,
-      fontSize: 13.5
-    }
-  }, "아직 담긴 낱말이 없어요."), sel.words.map((w, i) => /*#__PURE__*/React.createElement("div", {
-    key: i,
-    style: {
-      ...glass(0.5, 14),
-      borderRadius: 16,
-      padding: "14px 16px",
-      marginBottom: 10,
-      boxShadow: "0 8px 20px -12px rgba(44,44,44,.18), inset 0 1px 0 rgba(255,255,255,.75)"
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "baseline"
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontFamily: SERIF,
-      fontSize: 18,
-      fontWeight: 700,
-      color: C.ink
-    }
-  }, w.word), /*#__PURE__*/React.createElement("button", {
-    onClick: () => mutate(prev => prev.map(b => b.id === sel.id ? {
-      ...b,
-      words: b.words.filter((_, j) => j !== i)
-    } : b)),
-    style: {
-      border: "none",
-      background: "transparent",
-      color: C.faint,
-      fontFamily: SERIF,
-      fontSize: 12.5,
-      cursor: "pointer"
-    }
-  }, "빼기")), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontFamily: SERIF,
-      fontSize: 13.5,
-      color: C.faint,
-      marginTop: 4,
-      lineHeight: 1.5
-    }
-  }, w.meaning || w.definitions?.[0]?.def || "")))), (creating || renaming) && /*#__PURE__*/React.createElement(Modal, {
-    onClose: () => {
-      setCreating(false);
-      setRenaming(false);
-    }
-  }, /*#__PURE__*/React.createElement("h3", {
-    style: {
-      fontFamily: SERIF,
-      fontSize: 18,
-      color: C.ink,
-      margin: "0 0 14px"
-    }
-  }, creating ? "새 단어장 만들기" : "이름 변경"), /*#__PURE__*/React.createElement("input", {
-    autoFocus: true,
-    value: name,
-    onChange: e => setName(e.target.value),
-    placeholder: "단어장 이름",
-    style: {
-      ...glass(0.55, 10),
-      width: "100%",
-      boxSizing: "border-box",
-      borderRadius: 12,
-      padding: "12px 14px",
-      fontFamily: SERIF,
-      fontSize: 15,
-      color: C.ink,
-      outline: "none"
-    }
-  }), /*#__PURE__*/React.createElement("button", {
-    onClick: () => {
-      const t = name.trim();
-      if (!t) return;
-      if (creating) mutate(prev => [...prev, {
-        id: Date.now().toString(36),
-        title: t,
-        words: []
-      }]);else mutate(prev => prev.map(b => b.id === selected ? {
-        ...b,
-        title: t
-      } : b));
-      setCreating(false);
-      setRenaming(false);
-    },
-    style: {
-      width: "100%",
-      marginTop: 12,
-      background: "rgba(119,50,58,.88)",
-      color: "#FDFAF3",
-      border: "1px solid rgba(255,255,255,.3)",
-      borderRadius: 12,
-      padding: "13px 0",
-      fontFamily: SERIF,
-      fontSize: 15,
-      fontWeight: 600,
-      cursor: "pointer"
-    }
-  }, "저장")), confirmDel && sel && /*#__PURE__*/React.createElement(Modal, {
-    onClose: () => setConfirmDel(false)
-  }, /*#__PURE__*/React.createElement("h3", {
-    style: {
-      fontFamily: SERIF,
-      fontSize: 18,
-      color: C.ink,
-      margin: "0 0 8px"
-    }
-  }, "『", sel.title, "』 삭제"), /*#__PURE__*/React.createElement("p", {
-    style: {
-      fontFamily: SERIF,
-      fontSize: 13.5,
-      color: C.faint,
-      lineHeight: 1.6,
-      margin: "0 0 16px"
-    }
-  }, "담긴 ", sel.words.length, "개의 낱말도 함께 사라져요. 되돌릴 수 없어요."), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      gap: 8
-    }
-  }, /*#__PURE__*/React.createElement("button", {
-    onClick: () => setConfirmDel(false),
-    style: {
-      ...glass(0.4, 10),
-      flex: 1,
-      borderRadius: 12,
-      padding: "12px 0",
-      fontFamily: SERIF,
-      fontSize: 14.5,
-      color: C.ink,
-      cursor: "pointer"
-    }
-  }, "취소"), /*#__PURE__*/React.createElement("button", {
-    onClick: () => {
-      mutate(prev => prev.filter(b => b.id !== selected));
-      setSelected(null);
-      setConfirmDel(false);
-    },
-    style: {
-      flex: 1,
-      background: "rgba(119,50,58,.88)",
-      color: "#FDFAF3",
-      border: "1px solid rgba(255,255,255,.3)",
-      borderRadius: 12,
-      padding: "12px 0",
-      fontFamily: SERIF,
-      fontSize: 14.5,
-      fontWeight: 600,
-      cursor: "pointer"
-    }
-  }, "삭제"))));
-}
-
-/* ───────────── 암기 카드 화면 ───────────── */
-function FlashcardView({
-  book,
-  onClose
-}) {
-  const [idx, setIdx] = useState(0);
-  const [flipped, setFlipped] = useState(false);
-  const w = book.words[idx];
-  const go = d => {
-    setFlipped(false);
-    setTimeout(() => setIdx(i => (i + d + book.words.length) % book.words.length), 160);
-  };
-  const face = {
-    ...glass(0.55, 22),
-    position: "absolute",
-    inset: 0,
-    backfaceVisibility: "hidden",
-    borderRadius: 24,
-    boxShadow: "0 24px 50px -18px rgba(44,44,44,.28), inset 0 1px 0 rgba(255,255,255,.85)"
-  };
-  return /*#__PURE__*/React.createElement("div", {
-    style: {
-      position: "fixed",
-      inset: 0,
-      zIndex: 70,
-      background: "rgba(246,242,233,.86)",
-      backdropFilter: "blur(20px) saturate(1.3)",
-      WebkitBackdropFilter: "blur(20px) saturate(1.3)",
-      display: "flex",
-      flexDirection: "column",
-      animation: "lg-fade .35s ease"
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "center",
-      padding: "20px 24px"
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontFamily: SERIF,
-      fontSize: 15.5,
-      fontWeight: 600,
-      color: C.ink
-    }
-  }, book.title), /*#__PURE__*/React.createElement("button", {
-    onClick: onClose,
-    style: {
-      border: "none",
-      background: "transparent",
-      fontSize: 22,
-      color: C.faint,
-      cursor: "pointer",
-      fontFamily: SERIF
-    }
-  }, "✕")), /*#__PURE__*/React.createElement("div", {
-    style: {
-      flex: 1,
-      display: "grid",
-      placeItems: "center",
-      padding: "0 28px",
-      perspective: 1100
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    onClick: () => setFlipped(f => !f),
-    style: {
-      position: "relative",
-      width: "100%",
-      maxWidth: 360,
-      aspectRatio: "3/4",
-      transformStyle: "preserve-3d",
-      cursor: "pointer",
-      transform: flipped ? "rotateY(180deg)" : "rotateY(0)",
-      transition: "transform .65s cubic-bezier(.3,1.15,.35,1)"
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      ...face,
-      display: "grid",
-      placeItems: "center"
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      textAlign: "center"
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontFamily: SERIF,
-      fontSize: 36,
-      fontWeight: 700,
-      color: C.ink
-    }
-  }, w.word), w.phonetic && /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontFamily: SERIF,
-      fontSize: 15,
-      color: C.faint,
-      marginTop: 6
-    }
-  }, w.phonetic), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontFamily: SERIF,
-      fontSize: 11.5,
-      color: "rgba(140,130,110,.6)",
-      marginTop: 30,
-      letterSpacing: "0.14em"
-    }
-  }, "탭하여 뒤집기"))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      ...face,
-      transform: "rotateY(180deg)",
-      padding: 24,
-      overflowY: "auto"
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontFamily: SERIF,
-      fontSize: 21,
-      fontWeight: 700,
-      color: C.syn,
-      marginBottom: 10
-    }
-  }, w.word), w.meaning && /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontFamily: SERIF,
-      fontSize: 16,
-      color: C.ink,
-      lineHeight: 1.5,
-      marginBottom: 14
-    }
-  }, w.meaning), (w.examples || []).map((ex, i) => /*#__PURE__*/React.createElement("div", {
-    key: i,
-    style: {
-      marginBottom: 12
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontFamily: SERIF,
-      fontSize: 14,
-      color: C.ink,
-      lineHeight: 1.5,
-      fontStyle: "italic"
-    }
-  }, "“", ex.en, "”"), ex.ko && /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontFamily: SERIF,
-      fontSize: 12.5,
-      color: C.faint,
-      marginTop: 3
-    }
-  }, ex.ko))), !w.meaning && (w.definitions || []).map((d, i) => /*#__PURE__*/React.createElement("div", {
-    key: i,
-    style: {
-      marginBottom: 12
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontFamily: SERIF,
-      fontStyle: "italic",
-      fontSize: 12,
-      color: C.ant
-    }
-  }, d.pos), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontFamily: SERIF,
-      fontSize: 14.5,
-      color: C.ink,
-      lineHeight: 1.55
-    }
-  }, d.def), d.example && /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontFamily: SERIF,
-      fontSize: 13,
-      fontStyle: "italic",
-      color: C.faint,
-      marginTop: 3
-    }
-  }, "“", d.example, "”"))), w.synonyms?.length > 0 && /*#__PURE__*/React.createElement("div", {
-    style: {
-      borderTop: `1px solid ${C.hairline}`,
-      paddingTop: 12
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontFamily: SERIF,
-      fontSize: 11.5,
-      letterSpacing: "0.15em",
-      color: C.faint,
-      marginBottom: 8
-    }
-  }, "SYNONYMS"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      flexWrap: "wrap",
-      gap: 6
-    }
-  }, w.synonyms.map(s => /*#__PURE__*/React.createElement("span", {
-    key: s,
-    style: {
-      ...glass(0.4, 8),
-      fontFamily: SERIF,
-      fontSize: 13,
-      color: C.syn,
-      borderRadius: 999,
-      padding: "3px 11px"
-    }
-  }, s))))))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-      gap: 26,
-      padding: "0 0 calc(30px + env(safe-area-inset-bottom))"
-    }
-  }, /*#__PURE__*/React.createElement("button", {
-    onClick: () => go(-1),
-    style: {
-      border: "none",
-      background: "transparent",
-      fontFamily: SERIF,
-      fontSize: 26,
-      color: C.faint,
-      cursor: "pointer"
-    }
-  }, "‹"), /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontFamily: SERIF,
-      fontSize: 13.5,
-      color: C.faint
-    }
-  }, idx + 1, " / ", book.words.length), /*#__PURE__*/React.createElement("button", {
-    onClick: () => go(1),
-    style: {
-      border: "none",
-      background: "transparent",
-      fontFamily: SERIF,
-      fontSize: 26,
-      color: C.faint,
-      cursor: "pointer"
-    }
-  }, "›")));
-}
-
-/* ───────────── 설정 모달 ───────────── */
-function SettingsModal({
-  config,
-  onSave,
-  onClose
-}) {
-  const [provider, setProvider] = useState(config.provider);
-  const [key, setKey] = useState(config.openaiKey);
-  const save = () => {
-    onSave({
-      provider,
-      openaiKey: key.trim()
-    });
-    onClose();
-  };
-  return /*#__PURE__*/React.createElement(Modal, {
-    onClose: onClose
-  }, /*#__PURE__*/React.createElement("h3", {
-    style: {
-      fontFamily: SERIF,
-      fontSize: 19,
-      color: C.ink,
-      margin: "0 0 4px"
-    }
-  }, "설정"), /*#__PURE__*/React.createElement("p", {
-    style: {
-      fontFamily: SERIF,
-      fontSize: 12.5,
-      color: C.faint,
-      margin: "0 0 16px",
-      lineHeight: 1.55
-    }
-  }, "데이터 제공 방식을 선택하세요."), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontFamily: SERIF,
-      fontSize: 13,
-      color: C.faint,
-      marginBottom: 8
-    }
-  }, "API 종류"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      flexDirection: "column",
-      gap: 8,
-      marginBottom: 18
-    }
-  }, [{
-    id: "openai",
-    title: "gpt-4o-mini (OpenAI)",
-    desc: "한국어 뜻·예문까지 · 주력"
-  }, {
-    id: "dictionary",
-    title: "Free Dictionary",
-    desc: "영어 사전 · 키 불필요 · 레거시"
-  }].map(o => /*#__PURE__*/React.createElement("button", {
-    key: o.id,
-    onClick: () => setProvider(o.id),
-    style: {
-      ...glass(provider === o.id ? 0.5 : 0.28, 10),
-      textAlign: "left",
-      borderRadius: 13,
-      padding: "12px 14px",
-      cursor: "pointer",
-      border: provider === o.id ? `1.5px solid ${C.syn}` : "1px solid rgba(255,255,255,.7)"
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontFamily: SERIF,
-      fontSize: 15,
-      fontWeight: 600,
-      color: provider === o.id ? C.syn : C.ink
-    }
-  }, o.title), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontFamily: SERIF,
-      fontSize: 12,
-      color: C.faint,
-      marginTop: 2
-    }
-  }, o.desc)))), provider === "openai" && /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginBottom: 6,
-      animation: "lg-fade .3s ease"
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontFamily: SERIF,
-      fontSize: 13,
-      color: C.faint,
-      marginBottom: 8
-    }
-  }, "OpenAI API 키"), /*#__PURE__*/React.createElement("input", {
-    type: "password",
-    value: key,
-    onChange: e => setKey(e.target.value),
-    placeholder: "sk-...",
-    autoComplete: "off",
-    autoCapitalize: "off",
-    spellCheck: false,
-    style: {
-      ...glass(0.55, 10),
-      width: "100%",
-      boxSizing: "border-box",
-      borderRadius: 12,
-      padding: "12px 14px",
-      fontFamily: "monospace",
-      fontSize: 13.5,
-      color: C.ink,
-      outline: "none"
-    }
-  }), /*#__PURE__*/React.createElement("p", {
-    style: {
-      fontFamily: SERIF,
-      fontSize: 11.5,
-      color: C.faint,
-      margin: "8px 0 0",
-      lineHeight: 1.5
-    }
-  }, "키는 이 브라우저에만 저장되며 서버로 전송되지 않아요. 요청은 브라우저에서 OpenAI로 직접 갑니다.")), /*#__PURE__*/React.createElement("button", {
-    onClick: save,
-    style: {
-      width: "100%",
-      marginTop: 14,
-      background: "rgba(119,50,58,.9)",
-      color: "#FDFAF3",
-      border: "1px solid rgba(255,255,255,.3)",
-      borderRadius: 12,
-      padding: "13px 0",
-      fontFamily: SERIF,
-      fontSize: 15.5,
-      fontWeight: 600,
-      cursor: "pointer"
-    }
-  }, "저장"));
-}
-
-/* ───────────── 루트 앱 ───────────── */
-function App() {
-  const [tab, setTab] = useState("explore");
-  const [books, setBooks] = useState(() => loadBooks());
-  const [flashBook, setFlashBook] = useState(null);
-  const [config, setConfig] = useState(() => loadConfig());
-  const [showSettings, setShowSettings] = useState(false);
-  const ready = true;
-  const applyConfig = c => {
-    setConfig(c);
-    saveConfig(c);
-  };
-  const addWord = (bookId, entry) => {
-    if (!entry) return;
-    setBooks(prev => {
-      const next = prev.map(b => b.id === bookId && !b.words.some(w => w.word === entry.word) ? {
-        ...b,
-        words: [...b.words, entry]
-      } : b);
-      saveBooks(next);
-      return next;
-    });
-  };
-  const createBookAdd = (title, entry) => {
-    setBooks(prev => {
-      const next = [...prev, {
-        id: Date.now().toString(36),
-        title,
-        words: entry ? [entry] : []
-      }];
-      saveBooks(next);
-      return next;
-    });
-  };
-  const liveFlash = flashBook && books.find(b => b.id === flashBook.id);
-  return /*#__PURE__*/React.createElement("div", {
-    style: {
-      position: "fixed",
-      inset: 0,
-      background: C.bg,
-      overflow: "hidden"
-    }
-  }, /*#__PURE__*/React.createElement("style", null, `
-        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Noto+Serif+KR:wght@400;600;700&display=swap');
-        *{ -webkit-tap-highlight-color: transparent; }
-        input::placeholder{ color: rgba(140,130,110,.7); }
-        @keyframes lg-fade{ from{opacity:0} to{opacity:1} }
-        @keyframes lg-pop{ from{opacity:0; transform:scale(.92) translateY(8px)} to{opacity:1; transform:scale(1) translateY(0)} }
-        @keyframes lg-slideup{ from{transform:translateY(6%);opacity:0} to{transform:translateY(0);opacity:1} }
-        @keyframes lg-drift{ 0%,100%{transform:translate(0,0)} 50%{transform:translate(18px,-14px)} }
-        @media (prefers-reduced-motion: reduce){ *{transition-duration:.01ms !important; animation-duration:.01ms !important} }
-        ::-webkit-scrollbar{ width:0; height:0 }
-      `), /*#__PURE__*/React.createElement("div", {
-    style: {
-      position: "absolute",
-      width: 460,
-      height: 460,
-      borderRadius: "50%",
-      background: "radial-gradient(circle, rgba(119,50,58,.16), transparent 68%)",
-      top: -140,
-      right: -140,
-      pointerEvents: "none",
-      animation: "lg-drift 16s ease-in-out infinite"
-    }
-  }), /*#__PURE__*/React.createElement("div", {
-    style: {
-      position: "absolute",
-      width: 420,
-      height: 420,
-      borderRadius: "50%",
-      background: "radial-gradient(circle, rgba(62,90,126,.15), transparent 68%)",
-      bottom: -110,
-      left: -140,
-      pointerEvents: "none",
-      animation: "lg-drift 20s ease-in-out infinite reverse"
-    }
-  }), /*#__PURE__*/React.createElement("div", {
-    style: {
-      position: "absolute",
-      width: 340,
-      height: 340,
-      borderRadius: "50%",
-      background: "radial-gradient(circle, rgba(196,160,84,.13), transparent 70%)",
-      top: "38%",
-      left: "52%",
-      pointerEvents: "none",
-      animation: "lg-drift 24s ease-in-out infinite"
-    }
-  }), /*#__PURE__*/React.createElement("div", {
-    style: {
-      position: "absolute",
-      inset: "0 0 calc(72px + env(safe-area-inset-bottom)) 0"
-    }
-  }, ready && tab === "explore" && /*#__PURE__*/React.createElement(ExploreView, {
-    config: config,
-    books: books,
-    addWord: addWord,
-    createBookAdd: createBookAdd,
-    onOpenSettings: () => setShowSettings(true)
-  }), ready && tab === "books" && /*#__PURE__*/React.createElement(BooksView, {
-    books: books,
-    setBooks: setBooks,
-    onFlashcards: b => setFlashBook(b)
-  })), /*#__PURE__*/React.createElement("nav", {
-    style: {
-      position: "absolute",
-      left: 0,
-      right: 0,
-      bottom: 0,
-      height: "calc(72px + env(safe-area-inset-bottom))",
-      paddingBottom: "env(safe-area-inset-bottom)",
-      background: "rgba(255,255,255,.42)",
-      backdropFilter: "blur(20px) saturate(1.5)",
-      WebkitBackdropFilter: "blur(20px) saturate(1.5)",
-      borderTop: "1px solid rgba(255,255,255,.65)",
-      display: "flex",
-      zIndex: 20
-    }
-  }, [{
-    id: "explore",
-    label: "탐색",
-    glyph: "❋"
-  }, {
-    id: "books",
-    label: "단어장",
-    glyph: "❦"
-  }, {
-    id: "settings",
-    label: "설정",
-    glyph: "❖"
-  }].map(t => {
-    const active = t.id === "settings" ? showSettings : tab === t.id;
-    return /*#__PURE__*/React.createElement("button", {
-      key: t.id,
-      onClick: () => t.id === "settings" ? setShowSettings(true) : setTab(t.id),
-      style: {
-        flex: 1,
-        border: "none",
-        background: "transparent",
-        cursor: "pointer",
-        fontFamily: SERIF,
-        color: active ? C.syn : C.faint,
-        transition: "color .3s ease"
-      }
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontSize: 19,
-        transform: active ? "translateY(-2px)" : "none",
-        transition: "transform .35s cubic-bezier(.34,1.5,.5,1)"
-      }
-    }, t.glyph), /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontSize: 12,
-        fontWeight: 600,
-        marginTop: 2
-      }
-    }, t.label));
-  })), showSettings && /*#__PURE__*/React.createElement(SettingsModal, {
-    config: config,
-    onSave: applyConfig,
-    onClose: () => setShowSettings(false)
-  }), liveFlash && liveFlash.words.length > 0 && /*#__PURE__*/React.createElement(FlashcardView, {
-    book: liveFlash,
-    onClose: () => setFlashBook(null)
-  }));
-}
-
-var root = ReactDOM.createRoot(document.getElementById("root"));
-root.render(React.createElement(App));
-} catch (err) {
-  if (window.showBootError) window.showBootError((err && err.stack) || err);
-  throw err;
-}
+/* 구독: 97%에서 멈춤 */
+var buy=document.getElementById('buy'),bw=document.getElementById('bw'),
+    bf=document.getElementById('bf'),bl=document.getElementById('bl');
+buy.addEventListener('click',function(){
+  buy.disabled=true;buy.textContent='처리 중';bw.classList.add('on');bl.classList.add('on');
+  var p=0;
+  var iv=setInterval(function(){
+    p+=Math.random()*17;
+    if(p>=97){p=97;clearInterval(iv);
+      bl.textContent='결제 게이트웨이 응답 대기 중 · 97%';
+      setTimeout(function(){
+        document.getElementById('pay-body').classList.add('hide');
+        document.getElementById('paid').classList.add('on');
+        clearInterval(toastT);
+      },3600);}
+    bf.style.width=p.toFixed(0)+'%';bl.textContent='결제 처리 중 · '+p.toFixed(0)+'%';
+  },420);
+});
+addEventListener('keydown',function(e){if(payOpen&&e.key==='Escape')e.preventDefault();});
+quotaTxt();
+})();
 </script>
 </body>
 </html>
