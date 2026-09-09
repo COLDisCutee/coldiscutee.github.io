@@ -228,8 +228,8 @@ button.buy:hover{background:var(--steel)}
 <main class="wrap">
 
   <section class="hero" id="hero">
-    <h1>이 글을 누가 썼는지 판별합니다</h1>
-    <p>문장을 넣으면 앞면과 뒷면 중 하나가 나옵니다. 같은 글은 언제나 같은 결과를 받습니다.</p>
+    <h1>시대의 혁신적인 AI 검사기</h1>
+    <p>완벽하게 균형잡힌 예측.</p>
   </section>
 
   <div class="stage" id="stage">
@@ -251,9 +251,9 @@ button.buy:hover{background:var(--steel)}
       제3조 (요금) 무료 이용은 3회로 제한됩니다. 유료 전환 후 최초 1개월에 한하여 할인 요금이 적용되며, 이후에는 정가가 청구됩니다.<br><br>
       제4조 (입력 자료의 취급)<br>
       ① 회사는 이용자가 입력한 글의 전문을 열람할 수 있습니다.<br>
-      ② 이용자는 회사 및 운영자가 입력한 글을 사적인 용도로 이용·인용·낭독·전시·각색하는 데 동의합니다. 여기에는 회식 자리에서의 낭독, 단체 대화방 공유, 액자 제작이 포함됩니다.<br>
-      ③ 이용자는 본 동의를 철회할 수 있습니다. 다만 철회 절차는 마련되어 있지 않습니다.<br>
-      ④ 회사는 특히 재미있는 글을 별도로 보관할 수 있습니다.<br><br>
+      ② 이용자는 회사 및 운영자가 입력한 글을 사적인 용도로 이용·인용·각색하는 데 동의합니다. 여기에는 상업적 이용이 포함됩니다.<br>
+      ③ 이용자는 유선 전화를 통해 본 동의를 철회할 수 있습니다.<br>
+      ④ 회사는 최대 5년간 입력된 글을 수집 및 보관할 수 있습니다.<br><br>
       제5조 (책임의 제한) 판별 결과로 인해 발생한 학사·인사·법률상의 불이익에 대하여 회사는 책임지지 않습니다. 이용자는 결과를 신뢰하지 않을 책임을 집니다.<br><br>
       제6조 (약관의 변경) 회사는 약관을 사전 고지 없이 변경할 수 있으며, 변경 사실 또한 고지하지 않을 수 있습니다.
     </div>
@@ -261,14 +261,14 @@ button.buy:hover{background:var(--steel)}
       <span class="n mono" id="cnt">0자</span>
       <div>
         <button class="ghost" id="replay" disabled>다시 보기</button>
-        <button class="run" id="run">판별 시작</button>
+        <button class="run" id="run">검사 시작</button>
       </div>
     </div>
   </section>
 
   <div class="nag" id="nag">
     <span id="nag-txt">무료 검사가 2회 남았습니다.</span>
-    <a id="nag-a">무제한으로 전환</a>
+    <a id="nag-a">요금제 확인</a>
   </div>
 
   <section class="report" id="report">
@@ -282,7 +282,7 @@ button.buy:hover{background:var(--steel)}
       <div class="cell"><div class="k">토큰 엔트로피</div><div class="v mono" id="m3">—</div></div>
       <div class="cell"><div class="k">문체 지문 일치도</div><div class="v mono" id="m4">—</div></div>
       <div class="cell"><div class="k">정규화 길이</div><div class="v mono" id="m5">—</div></div>
-      <div class="cell"><div class="k">엔진 정확도</div><div class="v mono">50.0%</div></div>
+      <div class="cell"><div class="k">엔진 정확도</div><div class="v mono">83.0% ± 33.3%</div></div>
     </div>
     <div class="trace mono" id="trace"></div>
   </section>
@@ -321,7 +321,7 @@ button.buy:hover{background:var(--steel)}
           <div class="lt" id="lock-title">심층 인사이트 4건이 더 있습니다</div>
           <div class="lb" id="lock-body-txt">저작 시점 추정, 초안 수정 횟수, 표절 위험 구간 대조, 저작자 연령대 추정이 포함되어 있습니다.</div>
           <button class="unlock" id="unlock">계속 읽기</button>
-          <div class="lock-note" id="lock-note">추가 설치 없이 바로 확인</div>
+          <div class="lock-note" id="lock-note">바로 확인</div>
         </div>
       </div>
     </div>
@@ -330,12 +330,12 @@ button.buy:hover{background:var(--steel)}
   <section class="hz" id="hz">
     <div class="hz-in">
       <div class="hz-t" id="hz-t">이 글, 사람이 쓴 것처럼 다듬어 드립니다</div>
-      <div class="hz-b">문장 리듬과 어휘 분포를 재배열해 판별 결과가 뒤집히도록 조정합니다. 평균 처리 시간 3초.</div>
+      <div class="hz-b">문장 리듬과 어휘 분포를 재배열해 자연스럽게 조정합니다.</div>
       <div class="hz-row">
         <button class="hzgo" id="hz-go">지금 바로 이용</button>
         <div class="hz-m">
-          <span class="ok">회원가입 없이 · 카드 등록 없이 시작</span>
-          <span class="sub">이번 달 남은 변환 1회 · 결과는 즉시 확인</span>
+          <span class="ok"></span>
+          <span class="sub"></span>
         </div>
       </div>
     </div>
@@ -344,9 +344,9 @@ button.buy:hover{background:var(--steel)}
 
   <section class="ledger">
     <h3>검사 기록</h3>
-    <p>같은 글을 다시 넣어보세요. 해시가 같으면 판정도 같습니다. 저희는 이것을 재현성이라고 부릅니다.</p>
+    <p>최근 검사한 기록.</p>
     <table>
-      <thead><tr><th style="width:40%">글</th><th style="width:24%">해시</th><th style="width:18%">판정</th><th style="width:18%">횟수</th></tr></thead>
+      <thead><tr><th style="width:40%">글</th><th style="width:24%">해시</th><th style="width:18%">결과</th><th style="width:18%">횟수</th></tr></thead>
       <tbody id="tbody"><tr><td colspan="4" class="empty">아직 검사한 글이 없습니다.</td></tr></tbody>
     </table>
   </section>
@@ -357,13 +357,15 @@ button.buy:hover{background:var(--steel)}
   <div class="wrap">
     <dl class="fine">
       <dt>판정 방식</dt>
-      <dd>공백을 정규화한 문자열의 해시를 계산하고, 마지막 비트가 1이면 AI, 0이면 사람으로 판정합니다. 화면의 동전은 이미 정해진 답을 연기합니다.</dd>
+      <dd>Coinzero만의 알고리즘으로 빠르고 신속한 검사 결과를 보장합니다.</dd>
       <dt>지표</dt>
-      <dd>퍼플렉서티, 버스티니스, 엔트로피, 문체 지문 일치도는 모두 같은 해시에서 파생된 숫자이며 아무것도 측정하지 않습니다. 확신도는 언제나 높게 나오도록 되어 있습니다. 그 옆의 엔진 정확도 50.0%가 실제 값입니다.</dd>
+      <dd>퍼플렉서티, 버스티니스, 엔트로피, 문체 지문 일치도를 데이터로 로지스틱 회귀 알고리즘을 통한 검사를 진행합니다.
+      
+      </dd>
       <dt>정확도</dt>
-      <dd>여러 연구에서 보고된 시판 AI 검사기의 성능도 대체로 이 근방에서 관측됩니다. 차이가 있다면 저쪽은 동전을 쓰지 않는다고 말한다는 점입니다.</dd>
+      <dd>타사의 AI검사기보다 0% 뛰어난 50%의 정확도를 가집니다.</dd>
       <dt>고지</dt>
-      <dd>이 사이트는 풍자입니다. 약관과 결제창을 포함해 어떤 것도 실제로 동작하지 않습니다. 입력한 글은 브라우저 밖으로 나가지 않고, 서버도 결제 정보도 존재하지 않으며, 운영자는 여러분의 글을 회식 자리에서 낭독할 수 없습니다. 이런 조항이 실제 약관 4조쯤에 묻혀 있다면 그건 풍자가 아닐 것입니다.</dd>
+      <dd>약관과 결제창을 포함해 어떤 것도 실제로 동작하지 않습니다. 입력한 글은 브라우저 밖으로 나가지 않습니다.</dd>
     </dl>
   </div>
 </footer>
@@ -392,22 +394,22 @@ button.buy:hover{background:var(--steel)}
       <div class="timer mono" id="timer">할인 종료까지 09:59</div>
       <div class="social" id="social">지금 이 페이지를 3명이 보고 있습니다</div>
       <div class="opts">
-        <label class="opt" id="o1"><input type="checkbox" checked><span>매월 자동 갱신 (권장)</span></label>
-        <label class="opt" id="o2"><input type="checkbox" checked><span>제휴사 소식과 맞춤 제안 받기</span></label>
-        <label class="opt" id="o3"><input type="checkbox" checked><span>할인 종료 후 정가로 자동 전환하는 데 동의</span></label>
+        <label class="opt" id="o1"><input type="checkbox" checked><span>매월 자동 갱신 (선택)</span></label>
+        <label class="opt" id="o2"><input type="checkbox" checked><span>제휴사 소식과 맞춤 제안 받기 (선택)</span></label>
+        <label class="opt" id="o3"><input type="checkbox" checked><span>개인정보 국외 이전 동의 (필수)</span></label>
       </div>
       <div class="pay-act">
         <button class="buy" id="buy">지금 구독하기</button>
         <div class="bar-wrap" id="bw"><div class="bar-fill" id="bf"></div></div>
         <div class="bar-lbl mono" id="bl"></div>
       </div>
-      <button class="decline" id="decline">괜찮습니다, 계속 부정확한 결과를 보겠습니다</button>
-      <div class="pay-note" id="note">할인은 최초 1개월에만 적용되며 이후 정가 ₩11,200이 청구됩니다. 연간 결제는 즉시 전액 청구되고 중도 해지 시 잔여 기간은 환불되지 않습니다. 해지 버튼은 준비 중입니다. 본 창은 닫을 수 없습니다.</div>
+      <button class="decline" id="decline">괜찮습니다</button>
+      <div class="pay-note" id="note">할인은 최초 1개월에만 적용되며 이후 정가 ₩11,200이 청구됩니다. 연간 결제는 즉시 전액 청구되고 중도 해지 시 잔여 기간은 환불되지 않습니다.</div>
     </div>
     <div class="paid" id="paid">
       <h4>결제 시스템 점검 중입니다</h4>
-      <p>구독이 곧 가능해집니다. 그때까지 검사는 이용하실 수 없습니다.<br>이 창은 닫히지 않습니다.</p>
-      <div class="pay-note" style="text-align:left;color:#C3CAD1">새로고침하면 무료 검사 3회가 초기화됩니다. 저희는 이 사실을 여기에만 적어 둡니다.</div>
+      <p>서버 과부화로 결제 시스템이 원활하지 않습니다.<br>나중에 다시 시도해주세요..</p>
+      <div class="pay-note" style="text-align:left;color:#C3CAD1">새로고침하면 무료 검사 3회가 초기화됩니다.</div>
     </div>
     <div class="toast" id="toast"></div>
   </div>
@@ -665,7 +667,7 @@ run.addEventListener('click',function(){
     stat:s.stat,fr:s.frames,seed:(h[1]^0x2545F491)>>>0};
   report.classList.remove('on');document.getElementById('insight').classList.remove('on');
   document.getElementById('hz').classList.remove('on');
-  run.disabled=true;run.textContent='판별 중';replayBtn.disabled=true;
+  run.disabled=true;run.textContent='검사 중';replayBtn.disabled=true;
   hero.classList.add('dim');
   frames=s.frames;
   if(three&&!reduce){pt=0;playing=true;}
@@ -678,15 +680,15 @@ replayBtn.addEventListener('click',function(){
 function landed(){
   var d=pending;if(!d)return;
   setTimeout(function(){hero.classList.remove('dim')},400);
-  document.getElementById('v-title').textContent=d.ai?'AI가 작성한 글로 판정되었습니다':'사람이 작성한 글로 판정되었습니다';
+  document.getElementById('v-title').textContent=d.ai?'이 글은 AI에 의해 작성되었습니다':'이 글은 사람에 의해 작성되었습니다.';
   document.getElementById('v-title').className=d.ai?'ai':'hu';
-  document.getElementById('v-conf').textContent='확신도 '+d.conf+'% — 옆의 엔진 정확도와는 무관한 값입니다';
+  document.getElementById('v-conf').textContent='확신도 '+d.conf+'%';
   document.getElementById('m1').textContent=d.perp;
   document.getElementById('m2').textContent=d.burst;
   document.getElementById('m3').textContent=d.ent;
   document.getElementById('m4').textContent=d.fp;
   document.getElementById('m5').textContent=d.len;
-  document.getElementById('trace').textContent='hash '+d.hs+'  ·  마지막 비트 '+(d.ai?1:0)+' → '+(d.ai?'AI':'인간');
+  document.getElementById('trace').textContent='hash '+d.hs;
   report.classList.add('on');
   buildInsight(d);
   showHz(d);
@@ -698,10 +700,10 @@ function landed(){
     tr.appendChild(td(r.s,'snip'));
     var hh=td(r.h.slice(0,12),'mono');hh.style.color='var(--ink3)';tr.appendChild(hh);
     tr.appendChild(td(r.ai?'AI':'인간',r.ai?'v-ai':'v-hu'));
-    tr.appendChild(td(r.n+'회 · 동일','mono'));
+    tr.appendChild(td(r.n+'회','mono'));
     tbody.appendChild(tr);
   });
-  run.disabled=false;run.textContent='다시 판별';replayBtn.disabled=!three;
+  run.disabled=false;run.textContent='재검사';replayBtn.disabled=!three;
   used++;quotaTxt();
   if(used>=LIMIT)setTimeout(openPay,1400);
 }
@@ -792,8 +794,8 @@ document.getElementById('unlock').addEventListener('click',function(){openPay()}
 /* ── 휴먼라이저 ── */
 function showHz(d){
   document.getElementById('hz-t').textContent=d.ai
-    ? '이 글, 사람이 쓴 것처럼 다듬어 드립니다'
-    : '사람 판정을 받았습니다. 더 사람처럼 만들 수 있습니다';
+    ? '사람으로 재탄생'
+    : '더 사람답게';
   document.getElementById('hz').classList.add('on');
 }
 document.getElementById('hz-go').addEventListener('click',function(){openPay()});
@@ -821,13 +823,6 @@ function openPay(){
 document.getElementById('nag-a').addEventListener('click',openPay);
 
 /* 닫기 버튼: 커서를 피해 달아나고, 눌러도 작아지기만 함 */
-var xb=document.getElementById('x'),xN=0;
-xb.addEventListener('mouseenter',function(){
-  var dx=(Math.random()*2-1)*38,dy=(Math.random()*2-1)*22;
-  xb.style.transform='translate('+dx+'px,'+dy+'px) scale('+Math.max(.25,1-xN*.2)+')';});
-xb.addEventListener('click',function(){
-  xN++;xb.style.transform='scale('+Math.max(.25,1-xN*.2)+')';
-  if(xN>=4)xb.style.opacity='.2';});
 
 /* 체크박스: 해제하면 되돌아옴 */
 ['o1','o2','o3'].forEach(function(id){
@@ -838,26 +833,8 @@ xb.addEventListener('click',function(){
       setTimeout(function(){box.classList.remove('shake')},320);},380);});
 });
 /* 월간 요금제는 영원히 이용 불가 */
-document.getElementById('p-month').addEventListener('click',function(){
-  var s=this.querySelector('small');s.textContent='월간 결제는 곧 지원될 예정입니다';
-  setTimeout(function(){s.textContent='일시적으로 이용할 수 없습니다'},1800);});
 
-/* 거절: 누를수록 조건이 나빠짐 */
-var dN=0,dec=document.getElementById('decline');
-var steps=[
-  {txt:'정말 나가시겠어요?',price:'₩5,900',badge:'47%',kick:'특별히 한 번 더 깎아 드립니다',sub:'₩70,800 즉시 청구 · 오늘만'},
-  {txt:'마지막 제안입니다',price:'₩4,690',badge:'58%',kick:'이 가격은 다시 나오지 않습니다',sub:'₩56,280 즉시 청구 · 재고 소진 임박'},
-  {txt:'이 버튼은 작동하지 않습니다',price:'₩8,900',badge:'21%',kick:'할인 기회가 만료되었습니다',sub:'₩106,800 즉시 청구 · 할인 종료'}
-];
-dec.addEventListener('click',function(){
-  if(dN>=steps.length){dec.style.color='#E2E7EB';return;}
-  var s=steps[dN++];
-  dec.textContent=s.txt;
-  document.getElementById('now').textContent=s.price;
-  document.getElementById('badge').textContent=s.badge;
-  document.getElementById('kicker').textContent=s.kick;
-  document.getElementById('year-sub').textContent=s.sub;
-});
+
 
 /* 구독: 97%에서 멈춤 */
 var buy=document.getElementById('buy'),bw=document.getElementById('bw'),
