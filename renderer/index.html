@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Short++</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<svg class="sprite" aria-hidden="true" focusable="false">
+  <symbol id="i-py" viewBox="-1 -1 113.2 114.4"><path fill="#4b8bbe" d="M 54.918785,9.1927421e-4 C 50.335132,0.02221727 45.957846,0.41313697 42.106285,1.0946693 30.760069,3.0991731 28.700036,7.2947714 28.700035,15.032169 v 10.21875 h 26.8125 v 3.40625 h -26.8125 -10.0625 c -7.792459,0 -14.6157588,4.683717 -16.7499998,13.59375 -2.46181998,10.212966 -2.57101508,16.586023 0,27.25 1.9059283,7.937852 6.4575432,13.593748 14.2499998,13.59375 h 9.21875 v -12.25 c 0,-8.849902 7.657144,-16.656248 16.75,-16.65625 h 26.78125 c 7.454951,0 13.406253,-6.138164 13.40625,-13.625 v -25.53125 c 0,-7.2663386 -6.12998,-12.7247771 -13.40625,-13.9374997 C 64.281548,0.32794397 59.502438,-0.02037903 54.918785,9.1927421e-4 Z m -14.5,8.21875012579 c 2.769547,0 5.03125,2.2986456 5.03125,5.1249996 -2e-6,2.816336 -2.261703,5.09375 -5.03125,5.09375 -2.779476,-1e-6 -5.03125,-2.277415 -5.03125,-5.09375 -10e-7,-2.826353 2.251774,-5.1249996 5.03125,-5.1249996 z"/><path fill="#ffd43b" d="m 85.637535,28.657169 v 11.90625 c 0,9.230755 -7.825895,16.999999 -16.75,17 h -26.78125 c -7.335833,0 -13.406249,6.278483 -13.40625,13.625 v 25.531247 c 0,7.266344 6.318588,11.540324 13.40625,13.625004 8.487331,2.49561 16.626237,2.94663 26.78125,0 6.750155,-1.95439 13.406253,-5.88761 13.40625,-13.625004 V 86.500919 h -26.78125 v -3.40625 h 26.78125 13.406254 c 7.792461,0 10.696251,-5.435408 13.406241,-13.59375 2.79933,-8.398886 2.68022,-16.475776 0,-27.25 -1.92578,-7.757441 -5.60387,-13.59375 -13.406241,-13.59375 z m -15.0625,64.65625 c 2.779478,3e-6 5.03125,2.277417 5.03125,5.093747 -2e-6,2.826354 -2.251775,5.125004 -5.03125,5.125004 -2.76955,0 -5.03125,-2.29865 -5.03125,-5.125004 2e-6,-2.81633 2.261697,-5.093747 5.03125,-5.093747 z"/></symbol>
+  <symbol id="i-cpp" viewBox="2 2 28 28"><path fill="#6a9fd8" d="M26.914,13.8V15.34H25.372v1.543h1.542v1.543h1.543V16.883H30V15.34H28.457V13.8Zm-3.5,0H21.87V15.34H20.327v1.543H21.87v1.543h1.543V16.883h1.543V15.34H23.413Zm-3.654,5.226a6.167,6.167,0,1,1-.04-6.118l5.39-3.1a12.384,12.384,0,1,0,.032,12.34Z"/></symbol>
+</svg>
+<header class="top" id="top">
+  <div class="top-l">
+    <div class="brand">Short<b>++</b></div>
+    <button class="tbtn ib" id="b-side" aria-pressed="true" aria-label="Toggle explorer"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="2.5" width="13" height="11" rx="2"/><path d="M6 2.5v11"/></svg></button>
+    <div class="menu-wrap">
+      <button class="tbtn" id="m-file" aria-haspopup="menu" aria-expanded="false" aria-controls="file-menu">File</button>
+      <div class="menu" id="file-menu" role="menu" aria-labelledby="m-file" hidden>
+        <button role="menuitem" data-cmd="newCpp"><span>New C++ file</span><kbd></kbd></button>
+        <button role="menuitem" data-cmd="newPy"><span>New Python file</span><kbd></kbd></button>
+        <button role="menuitem" data-cmd="newFolder"><span>New folder</span><kbd data-k="Shift+N"></kbd></button>
+        <button role="menuitem" data-cmd="open"><span>Open…</span><kbd data-k="O"></kbd></button>
+        <div class="sep" role="separator"></div>
+        <button role="menuitem" data-cmd="templates"><span>Templates…</span><kbd>Shift+Enter</kbd></button>
+        <button role="menuitem" data-cmd="exampleCpp"><span>Open C++ example</span><kbd></kbd></button>
+        <button role="menuitem" data-cmd="examplePy"><span>Open Python example</span><kbd></kbd></button>
+        <div class="sep" role="separator"></div>
+        <button role="menuitem" data-cmd="save"><span>Save</span><kbd data-k="S"></kbd></button>
+        <button role="menuitem" data-cmd="saveAs"><span>Save as…</span><kbd data-k="Shift+S"></kbd></button>
+      </div>
+    </div>
+    <button class="tbtn" id="undo" disabled>Undo</button>
+    <button class="tbtn" id="redo" disabled>Redo</button>
+    <button class="tbtn" id="b-copy">Copy</button>
+  </div>
+  <div class="top-c" id="title">
+    <span class="dirty" id="dirty" hidden aria-label="Unsaved changes"></span><span class="fname" id="fname">Untitled</span><span class="fpath" id="fpath"></span>
+  </div>
+  <div class="top-r">
+    <div class="wc" id="wc">
+      <button class="wbtn" id="w-min" aria-label="Minimize"><svg viewBox="0 0 10 10" aria-hidden="true"><path d="M0 5.5h10"/></svg></button>
+      <button class="wbtn" id="w-max" aria-label="Maximize"><svg viewBox="0 0 10 10" aria-hidden="true"><path class="i-max" d="M.5.5h9v9h-9z"/><path class="i-res" d="M2.5 2.5h7v7h-7zM2.5 2.5V.5h7v7h-2"/></svg></button>
+      <button class="wbtn close" id="w-close" aria-label="Close"><svg viewBox="0 0 10 10" aria-hidden="true"><path d="M.5.5l9 9M9.5.5l-9 9"/></svg></button>
+    </div>
+  </div>
+</header>
+<div class="app">
+  <aside class="ex" id="ex" aria-label="Explorer">
+    <div class="ex-h">
+      <span class="ex-t">Files</span>
+      <button class="ib" id="ex-newfile" title="New file" aria-label="New file"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.6 1.8h5.6l3.2 3.2v4"/><path d="M3.6 1.8v12.4h5"/><path d="M12.5 11v4.5M10.25 13.25h4.5"/></svg></button>
+      <button class="ib" id="ex-newfolder" title="New folder" aria-label="New folder"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8.5 12.8H1.8v-9h4.3l1.5 1.6h6.6v4"/><path d="M12.5 10v4.5M10.25 12.25h4.5"/></svg></button>
+      <button class="ex-sort" id="ex-sort">Name</button>
+    </div>
+    <div class="tree" id="tree" role="tree" aria-label="Files"></div>
+    <div class="ex-rz" id="ex-rz" role="separator" aria-orientation="vertical" aria-label="Resize explorer" title="Drag to resize. Double-click to reset." tabindex="0"></div>
+  </aside>
+  <section class="ed" aria-label="Editor">
+    <div class="scroller" id="scroller">
+      <div class="code">
+        <div class="hl" id="hl" aria-hidden="true"></div>
+        <textarea id="src" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" aria-label="C++ code" placeholder="Paste your C++ code here"></textarea>
+      </div>
+    </div>
+    <section class="run" id="run" aria-label="Run">
+      <div class="run-rz" id="run-rz" role="separator" aria-orientation="horizontal" aria-label="Resize run panel" tabindex="0"></div>
+      <div class="run-h">
+        <button class="run-t" id="run-toggle" aria-expanded="true" aria-controls="run-body"><span class="cv"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.8 7.7 6 4.5 9.2"/></svg></span>Run</button>
+        <button class="go run-go" id="b-run">Run<kbd id="run-kbd">Ctrl+Enter</kbd></button>
+        <button class="tbtn" id="b-stop" hidden>Stop</button>
+        <span class="verdict" id="verdict"></span>
+        <span class="run-meta" id="run-meta"></span>
+        <button class="tbtn" id="b-expect">Set as expected</button>
+      </div>
+      <div class="run-body" id="run-body">
+        <div class="pane">
+          <label class="pane-h" for="stdin">Input</label>
+          <textarea id="stdin" spellcheck="false" placeholder="stdin"></textarea>
+        </div>
+        <div class="pane" id="pane-out">
+          <div class="pane-h">Output<span class="tabs2" id="out-tabs" hidden><button class="t2 on" data-o="out">Output</button><button class="t2" data-o="exp">Expected</button></span></div>
+          <pre class="out" id="out" tabindex="0"></pre>
+        </div>
+      </div>
+    </section>
+    <div class="status"><span id="pos" title="Hold Ctrl+Shift and use L , . / as the arrow keys">Ln 1, Col 1</span><span id="lang">C++ (GCC)</span></div>
+  </section>
+
+  <aside class="panel" aria-label="Analysis">
+    <div class="par">
+      <div class="par-top">
+        <div>
+          <span class="lab">Now</span>
+          <div class="big"><span id="bytes">0</span><small>B</small></div>
+        </div>
+        <div class="goal">
+          <label class="lab" for="target">Target</label>
+          <div class="goal-in"><input id="target" inputmode="numeric" placeholder="none" autocomplete="off"><small>B</small></div>
+          <div class="delta" id="delta"></div>
+        </div>
+      </div>
+      <div class="cut">
+        <span class="cut-p zero" id="cutp">0%</span>
+        <span class="cut-l" id="cutl"></span>
+        <button class="reset" id="b-base" title="Use the current size as the start">Reset start</button>
+      </div>
+      <div class="track" aria-hidden="true"><div class="fill" id="fill"></div><div class="tick" id="tick" hidden></div></div>
+      <div class="sub" id="sub"></div>
+    </div>
+
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" aria-selected="true" data-p="an">Analysis<span class="n" id="cnt"></span></button>
+      <button class="tab" role="tab" aria-selected="false" data-p="tips">Cheat sheet</button>
+    </div>
+
+    <div id="pane-an" role="tabpanel">
+      <div class="sq">
+        <p class="h" id="sq-h">Strip whitespace and comments</p>
+        <div class="opts" id="opts"></div>
+        <button class="go" id="b-min" disabled><span id="go-t">Minify</span><span class="v" id="go-v"></span></button>
+      </div>
+      <div class="lh2"><p class="h">More to cut</p><span class="t" id="tot"></span></div>
+      <div id="list"></div>
+    </div>
+
+    <div id="pane-tips" role="tabpanel" hidden>
+      <div class="tips" id="tips"></div>
+    </div>
+  </aside>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="menu ctx" id="ctx" role="menu" aria-label="File actions" hidden></div>
+<div class="drop" id="drop" hidden><p>Drop a C++ file to open it</p></div>
+<script src="core.js"></script>
+<script src="core-py.js"></script>
+<script src="app.js"></script>
+<script src="complete.js"></script>
+</body>
+</html>
